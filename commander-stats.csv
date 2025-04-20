@@ -1,0 +1,14 @@
+Type,Name,Color,Damage,Range,Speed,Cooldown,Health,AttackStyle,SpecialAbility
+Commander,Warrior,#FFD700,3,50,7,3000,50,Melee,Sword sweep that damages all nearby enemies
+Commander,Archer,#00FF00,2,6,1.8,3000,50,Ranged,Fires arrows in 8 directions simultaneously
+Commander,Mage,#FF00FF,2,5,1.5,3000,50,Magic,Freezes all enemies temporarily
+Commander,Paladin,#E6E6E6,4,2,1.2,4000,75,Melee,Creates a protective shield that reduces damage
+Commander,Berserker,#FF4500,5,2,2.2,4500,40,Melee,Enters rage mode increasing damage but reducing defense
+Commander,Necromancer,#800080,3,4,1.3,5000,45,Magic,Summons skeletons to fight alongside you
+Commander,Ranger,#228B22,2,7,2.0,3500,40,Ranged,Sets traps that damage and slow enemies
+Commander,Chronomancer,#4169E1,1,4,1.7,4000,45,Magic,Manipulates time to speed up allies and slow enemies
+Commander,Artificer,#DAA520,3,5,1.6,3500,50,Ranged,Deploys mechanical turrets that attack enemies
+Commander,Elementalist,#00FFFF,2,4,1.4,3000,45,Magic,Cycles through elemental attacks with different effects Type,Name,Color,Damage,Range,Speed,Cooldown,Health,AttackStyle,SpecialAbility
+Commander,Warrior,#FFD700,3,50,7,3000,50,Melee,Sword sweep that damages all nearby enemies
+Commander,Archer,#00FF00,2,6,1.8,3000,50,Ranged,Fires arrows in 8 directions simultaneously
+Commander,Mage,#FF00FF,2,5,1.5,3000,50,Magic,Freezes all enemies temporarily

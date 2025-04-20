@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Pixel Art Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #000;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            border: 2px solid #444;
+            image-rendering: pixelated;
+        }
+        #start-button {
+            position: absolute;
+            background: #007700;
+            color: white;
+            font-size: 24px;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        #start-button:hover {
+            background: #00aa00;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="game-canvas" width="800" height="600"></canvas>
+    <button id="start-button">START GAME</button>
+    
+    <script>
+        // Get canvas and context
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const startButton = document.getElementById('start-button');
+        
+        // Game state
+        let gameStarted = false;
+        let playerX = 400;
+        let playerY = 300;
+        let playerSize = 20;
+        let playerColor = '#00FFFF';
+        
+        // Draw the background
+        function drawBackground() {
+            // Fill the background
+            ctx.fillStyle = '#222233';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw a grid pattern
+            ctx.strokeStyle = '#333344';
+            ctx.lineWidth = 1;
+            
+            // Draw vertical lines
+            for (let x = 0; x < canvas.width; x += 20) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            // Draw horizontal lines
+            for (let y = 0; y < canvas.height; y += 20) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+        }
+        
+        // Draw the title screen
+        function drawTitleScreen() {
+            // Draw game title
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = '48px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Pixel Art Game', canvas.width / 2, 100);
+            
+            // Draw instructions
+            ctx.font = '24px Arial';
+            ctx.fillText('Click the button to start', canvas.width / 2, 200);
+        }
+        
+        // Draw the player
+        function drawPlayer() {
+            ctx.fillStyle = playerColor;
+            ctx.fillRect(playerX - playerSize/2, playerY - playerSize/2, playerSize, playerSize);
+        }
+        
+        // Handle game start
+        startButton.addEventListener('click', function() {
+            gameStarted = true;
+            startButton.style.display = 'none';
+            gameLoop();
+        });
+        
+        // Handle keyboard input
+        document.addEventListener('keydown', function(event) {
+            if (!gameStarted) return;
+            
+            const speed = 5;
+            
+            switch(event.key) {
+                case 'ArrowUp':
+                case 'w':
+                    playerY -= speed;
+                    break;
+                case 'ArrowDown':
+                case 's':
+                    playerY += speed;
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                    playerX -= speed;
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                    playerX += speed;
+                    break;
+                case ' ':
+                    // Change color on space
+                    playerColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+                    break;
+            }
+            
+            // Keep player within bounds
+            playerX = Math.max(playerSize/2, Math.min(canvas.width - playerSize/2, playerX));
+            playerY = Math.max(playerSize/2, Math.min(canvas.height - playerSize/2, playerY));
+        });
+        
+        // Game loop
+        function gameLoop() {
+            // Clear the canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw background
+            drawBackground();
+            
+            // Draw player if game has started
+            if (gameStarted) {
+                drawPlayer();
+                
+                // Draw game started text
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = '32px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Game Started!', canvas.width / 2, 100);
+                
+                // Draw controls text
+                ctx.font = '16px Arial';
+                ctx.fillText('Use WASD or Arrow Keys to move, Space to change color', canvas.width / 2, 150);
+            } else {
+                drawTitleScreen();
+            }
+            
+            // Request next frame
+            if (gameStarted) {
+                requestAnimationFrame(gameLoop);
+            }
+        }
+        
+        // Initial draw
+        drawBackground();
+        drawTitleScreen();
+    </script>
+</body>
+</html> 

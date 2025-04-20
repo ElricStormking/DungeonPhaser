@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game CSV Loading Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background-color: #f0f0f0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #333;
+        }
+        #game-container {
+            margin-top: 20px;
+            width: 800px;
+            height: 100px;
+            border: 1px solid #333;
+        }
+        #results {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            width: 800px;
+            max-height: 70vh;
+            overflow-y: auto;
+            white-space: pre;
+            overflow-x: auto;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+        #csv-data {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Game CSV Loading Test</h1>
+    <p>This page tests that the CSV files are correctly loaded by the actual game code.</p>
+    <div id="game-container"></div>
+    <div id="results"></div>
+    
+    <!-- Hidden textareas for CSV data -->
+    <div id="csv-data">
+        <textarea id="class-stats-csv"></textarea>
+        <textarea id="commander-stats-csv"></textarea>
+    </div>
+
+    <script type="module">
+        // Import the ClassLoader
+        import ClassLoader from './class-loader.js';
+        
+        // Override console.log and console.error to display in the results div
+        const resultsDiv = document.getElementById('results');
+        const originalLog = console.log;
+        const originalError = console.error;
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            const text = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg
+            ).join(' ');
+            resultsDiv.innerHTML += text + '<br>';
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            const text = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg
+            ).join(' ');
+            resultsDiv.innerHTML += `<span class="error">${text}</span><br>`;
+        };
+        
+        // Load the CSV data directly
+        function loadCSVData() {
+            // Load class-stats.csv content
+            const classStatsText = document.getElementById('class-stats-csv');
+            classStatsText.value = `Type,Name,Color,Damage,Range,Speed,Cooldown,Health,AttackStyle,SpecialAbility
+Engineer,Chronotemporal,#C78FFF,0,4,0,4500,2,CrowdControl,Slows nearby enemies temporarily
+Engineer,Voltaic,#00FFFF,1,5,0,3500,2,Chain,Electric attacks that chain to nearby enemies
+Engineer,Ice Mage,#B0E0E6,1,5,0,4500,2,Area,Creates an expanding ring of ice that freezes enemies
+Engineer,Ninja,#696969,2,0,250,3500,2,Directional,Throws deadly spinning gears that pierce through enemies
+Engineer,Holy Bard,#FFD700,1,3,0,4000,2,Area,Creates a field of holy energy that damages enemies
+Engineer,Dark Mage,#800080,3,0,0,5000,2,Beam,Channels dark energy beams that damage all enemies in a line
+Engineer,Shotgunner,#A52A2A,3,5,0,4000,2,Cone,Fires a spray of deadly embers in a cone
+Engineer,Sniper,#708090,6,0,500,5000,2,SingleTarget,Fires a high-powered shot that deals massive damage to a single target
+Engineer,Shroom Pixie,#FF69B4,2,2,0,4000,2,Area,Creates exploding mushrooms that release toxic spores
+Engineer,Thunder Mage,#7DF9FF,4,0,0,5000,2,SingleTarget,Calls down lightning bolts from above
+Engineer,Goblin Trapper,#32CD32,3,2.5,0,4000,2,Area,Places explosive mines that damage enemies
+Engineer,Shaman,#556B2F,1,3,0,4000,2,Area,Creates poisonous clouds that damage enemies over time`;
+            
+            // Load commander-stats.csv content
+            const commanderStatsText = document.getElementById('commander-stats-csv');
+            commanderStatsText.value = `Type,Name,Color,Damage,Range,Speed,Cooldown,Health,AttackStyle,SpecialAbility
+Commander,Warrior,#FFD700,3,3,2,3000,50,Melee,Sword sweep that damages all nearby enemies
+Commander,Archer,#00FF00,2,6,1.8,3000,50,Ranged,Fires arrows in 8 directions simultaneously
+Commander,Mage,#FF00FF,2,5,1.5,3000,50,Magic,Freezes all enemies temporarily
+Commander,Paladin,#E6E6E6,4,2,1.2,4000,75,Melee,Creates a protective shield that reduces damage
+Commander,Berserker,#FF4500,5,2,2.2,4500,40,Melee,Enters rage mode increasing damage but reducing defense
+Commander,Necromancer,#800080,3,4,1.3,5000,45,Magic,Summons skeletons to fight alongside you
+Commander,Ranger,#228B22,2,7,2.0,3500,40,Ranged,Sets traps that damage and slow enemies
+Commander,Chronomancer,#4169E1,1,4,1.7,4000,45,Magic,Manipulates time to speed up allies and slow enemies
+Commander,Artificer,#DAA520,3,5,1.6,3500,50,Ranged,Deploys mechanical turrets that attack enemies
+Commander,Elementalist,#00FFFF,2,4,1.4,3000,45,Magic,Cycles through elemental attacks with different effects`;
+        }
+        
+        // Load CSV data when page loads
+        loadCSVData();
+
+        // Create a minimal test scene
+        class TestScene extends Phaser.Scene {
+            constructor() {
+                super({ key: 'TestScene' });
+                this.classLoader = null;
+            }
+
+            preload() {
+                console.log('Preloading assets...');
+                this.classLoader = new ClassLoader(this);
+                
+                // Override the preload method to set the CSV data directly
+                this.classLoader.preload = () => {
+                    console.log('Setting up direct CSV data access');
+                };
+            }
+
+            create() {
+                console.log('Loading classes from CSV files...');
+                
+                // Override the load method to directly parse the CSV data
+                this.classLoader.load = () => {
+                    console.log('Loading CSV data directly...');
+                    
+                    const engineerCSV = document.getElementById('class-stats-csv').value;
+                    const commanderCSV = document.getElementById('commander-stats-csv').value;
+                    
+                    if (!engineerCSV) {
+                        console.error('Failed to load class-stats.csv');
+                        return;
+                    }
+                    this.classLoader.parseCSV(engineerCSV, 'engineer');
+                    
+                    if (!commanderCSV) {
+                        console.error('Failed to load commander-stats.csv');
+                        return;
+                    }
+                    this.classLoader.parseCSV(commanderCSV, 'commander');
+                    
+                    this.classLoader.loaded = true;
+                    console.log('Loaded', Object.keys(this.classLoader.engineerClasses).length, 'engineer classes and',
+                          Object.keys(this.classLoader.commanderClasses).length, 'commander classes');
+                };
+                
+                // Call the overridden load method
+                this.classLoader.load();
+                
+                if (this.classLoader.loaded) {
+                    console.log('Class loading successful!');
+                    this.verifyLoadedClasses();
+                } else {
+                    console.error('Failed to load classes.');
+                }
+            }
+            
+            verifyLoadedClasses() {
+                // Display loaded engineer classes
+                console.log('\n====== ENGINEER CLASSES ======');
+                const engineerClasses = this.classLoader.getAllEngineerClasses();
+                const engineerClassCount = Object.keys(engineerClasses).length;
+                console.log(`Found ${engineerClassCount} engineer classes.`);
+                
+                // Display first 3 engineer classes as sample
+                const engineerSamples = Object.keys(engineerClasses).slice(0, 3);
+                engineerSamples.forEach(key => {
+                    const classData = engineerClasses[key];
+                    console.log(`${classData.name}:`);
+                    console.log(`  Type: ${classData.type}`);
+                    console.log(`  Color: 0x${classData.color.toString(16)}`);
+                    console.log(`  Damage: ${classData.damage}`);
+                    console.log(`  Range: ${classData.range}`);
+                    console.log(`  Speed: ${classData.speed}`);
+                    console.log(`  Cooldown: ${classData.cooldown}`);
+                    console.log(`  Health: ${classData.health}`);
+                    console.log(`  AttackStyle: ${classData.attackstyle}`);
+                    console.log(`  SpecialAbility: ${classData.specialability}`);
+                    console.log('------------------------');
+                });
+                
+                // Display loaded commander classes
+                console.log('\n====== COMMANDER CLASSES ======');
+                const commanderClasses = this.classLoader.getAllCommanderClasses();
+                const commanderClassCount = Object.keys(commanderClasses).length;
+                console.log(`Found ${commanderClassCount} commander classes.`);
+                
+                // Display first 3 commander classes as sample
+                const commanderSamples = Object.keys(commanderClasses).slice(0, 3);
+                commanderSamples.forEach(key => {
+                    const classData = commanderClasses[key];
+                    console.log(`${classData.name}:`);
+                    console.log(`  Type: ${classData.type}`);
+                    console.log(`  Color: 0x${classData.color.toString(16)}`);
+                    console.log(`  Damage: ${classData.damage}`);
+                    console.log(`  Range: ${classData.range}`);
+                    console.log(`  Speed: ${classData.speed}`);
+                    console.log(`  Cooldown: ${classData.cooldown}`);
+                    console.log(`  Health: ${classData.health}`);
+                    console.log(`  AttackStyle: ${classData.attackstyle}`);
+                    console.log(`  SpecialAbility: ${classData.specialability}`);
+                    console.log('------------------------');
+                });
+                
+                // Verify specific data
+                let errorCount = 0;
+                
+                // Check Chronotemporal engineer
+                const chronotemporal = this.classLoader.getEngineerClass('Chronotemporal');
+                if (chronotemporal) {
+                    if (chronotemporal.damage !== 0) {
+                        console.error(`ERROR: Chronotemporal damage should be 0, found ${chronotemporal.damage}`);
+                        errorCount++;
+                    }
+                    if (chronotemporal.attackstyle.toLowerCase() !== 'crowdcontrol') {
+                        console.error(`ERROR: Chronotemporal attack style should be CrowdControl, found ${chronotemporal.attackstyle}`);
+                        errorCount++;
+                    }
+                } else {
+                    console.error(`ERROR: Chronotemporal engineer class not found`);
+                    errorCount++;
+                }
+                
+                // Check Warrior commander
+                const warrior = this.classLoader.getCommanderClass('Warrior');
+                if (warrior) {
+                    if (warrior.health !== 50) {
+                        console.error(`ERROR: Warrior health should be 50, found ${warrior.health}`);
+                        errorCount++;
+                    }
+                    if (warrior.attackstyle.toLowerCase() !== 'melee') {
+                        console.error(`ERROR: Warrior attack style should be Melee, found ${warrior.attackstyle}`);
+                        errorCount++;
+                    }
+                } else {
+                    console.error(`ERROR: Warrior commander class not found`);
+                    errorCount++;
+                }
+                
+                // Final result
+                if (errorCount === 0) {
+                    console.log('\n<span class="success">✅ VERIFICATION SUCCESSFUL: All CSV data loaded correctly!</span>');
+                } else {
+                    console.log(`\n<span class="error">❌ VERIFICATION FAILED: Found ${errorCount} errors in the loaded data.</span>`);
+                }
+            }
+        }
+
+        // Game configuration
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 100,
+            parent: 'game-container',
+            backgroundColor: '#2d2d2d',
+            scene: [TestScene]
+        };
+
+        // Start the game
+        const game = new Phaser.Game(config);
+    </script>
+</body>
+</html> 

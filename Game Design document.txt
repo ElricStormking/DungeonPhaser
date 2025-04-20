@@ -1,0 +1,73 @@
+Game Design document
+
+##Mechanics
+Snake + Vampire Survivor
+"Nimble Quest" like
+
+Fantasy Classes
+Commanders(avatars)
+engineers(followers)
+Attack Styles for fantasy classs
+Spawning Upgrades
+
+##Controls
+WASD 4 directions movements
+Auto-Attacks
+
+##Levels
+There are 4 stages and 32 levels
+For each level there are 5 Enemy Waves
+A boss enemy will appear the last level of each stage.
+
+##Enemies
+there are 20 fantasy monster enemies which are divided into following 5 categories.
+melee: slow enemy that keeps moving towards commander
+dasher: faster enemy with dashing ability(cool down) towards commander
+Bomber: slow, moving towards commander but will suicide after getting close to commander and bomb that area
+Shooter: slow enemy that move slowly towards commander, and shoots slow missiles at commander
+Mage: teleports randomly(with cool down) to a location near commander, shoots slow missiles.
+
+
+
+##Bosses
+there are 4 bosses with 4 unique attack styles.
+Stage1 boss: A Summoner, summon 10 minions enemies with him 
+Stage2 boss: A Berserker, dasher and do self centered area damage
+Stage3 boss: A Mad Alchemist, teleports randomly and does area damage like fireball
+Stage4 boss: A Lich King, teleports randomly, summon 20 minions enemies, and Does very large area attack with longer casting time and animation
+Boss will attack differently after reaching their 50% health and 25% health.
+
+##Terrains
+There are 4 types of Terrains
+Floor: Black color.
+Forest: slows all players and enemies movement speed to 50% when they move in this terrain types
+Meadow: Just green grass and brown dirt floor color decoration
+Bushes: slow all players and enemies movement speed to 75% when they move in this terrain types
+Swamps: player class and engineer class will taking damage when walking on it.
+
+##Visuals
+Pixel Art
+Attack Style Visuals
+
+Userflow
+Title Screen
+Multi-path Map design like "Slay the spire"
+Stages and Levels
+
+##Music and Sound
+Music BGMs:
+1 Title Screen music
+1 Chat system music
+1 Game Over screen music
+1 Map music
+4 BGM mp3 for all 32 levels of 4 stages.
+
+Sounds:
+player level up
+Victory
+player taking damage
+5 attack sounds for all attack types
+ 
+
+
+
