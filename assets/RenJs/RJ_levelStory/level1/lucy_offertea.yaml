@@ -1,0 +1,28 @@
+characters:
+  lucy:
+    displayName: 露西
+    sprites:
+      normal: lucy_normal.png
+      happy: lucy_happy.png
+
+backgrounds:
+  courtyard: Courtyard.jpg
+
+story:
+  - scene:
+      background: courtyard
+  - show:
+      character: lucy
+      sprite: normal
+  - say:
+      character: lucy
+      text: 嗨，很高兴见到你！要喝茶吗？
+  - show:
+      character: lucy
+      sprite: happy
+  - say:
+      character: lucy
+      text: 一起喝杯茶，放松一下吧！
+  - scene:
+      background: black
+  - end 
