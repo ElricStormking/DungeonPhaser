@@ -16,6 +16,10 @@ Auto-Attacks
 
 ##Levels
 There are 4 stages and 32 levels
+Level 1-8: Stage 1 
+Level 9-16: Stage 2
+Level 17-24: Stage 3 
+Level 25-32: Stage 4 
 For each level there are 5 Enemy Waves
 A boss enemy will appear the last level of each stage.
 
