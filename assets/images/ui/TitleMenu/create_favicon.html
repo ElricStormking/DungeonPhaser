@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Favicon Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin: 10px;
+            background: #fff;
+        }
+        .download-links {
+            margin-top: 20px;
+        }
+        a {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            background: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            text-align: center;
+            width: 200px;
+        }
+        .inputs {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Game Favicon Generator</h1>
+    
+    <div class="inputs">
+        <p>This tool will create a favicon from the game logo. Right-click the image to download it.</p>
+        <button id="generateBtn">Generate Favicon</button>
+    </div>
+    
+    <div>
+        <h3>Original Logo:</h3>
+        <img id="originalLogo" src="logo3.png" style="max-width: 300px; display: none;">
+        
+        <h3>Favicon Preview:</h3>
+        <canvas id="faviconCanvas" width="32" height="32"></canvas>
+    </div>
+    
+    <div class="download-links">
+        <a id="downloadPng" download="favicon.png">Download as PNG</a>
+        <p>Note: To convert the PNG to ICO format, you can use an online converter like <a href="https://www.favicon.cc/" target="_blank">favicon.cc</a></p>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoImg = document.getElementById('originalLogo');
+            const canvas = document.getElementById('faviconCanvas');
+            const ctx = canvas.getContext('2d');
+            const generateBtn = document.getElementById('generateBtn');
+            const downloadPng = document.getElementById('downloadPng');
+            
+            // Make sure the logo is loaded
+            logoImg.onload = function() {
+                logoImg.style.display = 'block';
+                generateFavicon();
+            };
+            
+            // Generate favicon
+            function generateFavicon() {
+                // Clear canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Set background
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Calculate dimensions to maintain aspect ratio
+                const imgWidth = logoImg.width;
+                const imgHeight = logoImg.height;
+                const scaleFactor = Math.min(canvas.width / imgWidth, canvas.height / imgHeight) * 0.8;
+                
+                const scaledWidth = imgWidth * scaleFactor;
+                const scaledHeight = imgHeight * scaleFactor;
+                const x = (canvas.width - scaledWidth) / 2;
+                const y = (canvas.height - scaledHeight) / 2;
+                
+                // Draw the image
+                ctx.drawImage(logoImg, x, y, scaledWidth, scaledHeight);
+                
+                // Update download link
+                downloadPng.href = canvas.toDataURL('image/png');
+            }
+            
+            // Button click handler
+            generateBtn.addEventListener('click', generateFavicon);
+            
+            // Initially generate favicon if image is already loaded
+            if (logoImg.complete) {
+                logoImg.style.display = 'block';
+                generateFavicon();
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Healthbar Generator</title>
+    <style>
+        canvas {
+            border: 1px solid #ccc;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Healthbar Generator</h1>
+    <div>
+        <canvas id="bgCanvas" width="200" height="20"></canvas>
+        <a id="bgDownload" download="healthbar-bg.png">Download Background</a>
+    </div>
+    <div>
+        <canvas id="fillCanvas" width="200" height="20"></canvas>
+        <a id="fillDownload" download="healthbar-fill.png">Download Fill</a>
+    </div>
+
+    <script>
+        // Create healthbar background
+        const bgCanvas = document.getElementById('bgCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        
+        // Background - dark gray rounded rectangle
+        bgCtx.fillStyle = '#333333';
+        bgCtx.roundRect(0, 0, 200, 20, 5);
+        bgCtx.fill();
+        
+        // Border
+        bgCtx.strokeStyle = '#555555';
+        bgCtx.lineWidth = 2;
+        bgCtx.roundRect(0, 0, 200, 20, 5);
+        bgCtx.stroke();
+        
+        // Create download link
+        document.getElementById('bgDownload').href = bgCanvas.toDataURL('image/png');
+        
+        // Create healthbar fill
+        const fillCanvas = document.getElementById('fillCanvas');
+        const fillCtx = fillCanvas.getContext('2d');
+        
+        // Fill - bright green rounded rectangle
+        fillCtx.fillStyle = '#00FF00';
+        fillCtx.roundRect(0, 0, 200, 20, 5);
+        fillCtx.fill();
+        
+        // Create download link
+        document.getElementById('fillDownload').href = fillCanvas.toDataURL('image/png');
+        
+        // Add roundRect if not supported
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                if (width < 2 * radius) radius = width / 2;
+                if (height < 2 * radius) radius = height / 2;
+                this.beginPath();
+                this.moveTo(x + radius, y);
+                this.arcTo(x + width, y, x + width, y + height, radius);
+                this.arcTo(x + width, y + height, x, y + height, radius);
+                this.arcTo(x, y + height, x, y, radius);
+                this.arcTo(x, y, x + width, y, radius);
+                this.closePath();
+                return this;
+            };
+        }
+    </script>
+</body>
+</html> 

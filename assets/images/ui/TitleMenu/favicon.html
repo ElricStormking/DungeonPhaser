@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Favicon Generator</title>
+</head>
+<body>
+    <canvas id="canvas" width="32" height="32"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set background to transparent
+        ctx.clearRect(0, 0, 32, 32);
+        
+        // Draw a simple pixel art D
+        ctx.fillStyle = '#FFA500'; // Orange
+        
+        // Draw a 'D' shape in pixel art style (16x16 pixels)
+        const pixelSize = 2;
+        
+        // Vertical line for the D
+        for (let y = 0; y < 16; y++) {
+            ctx.fillRect(4, y * pixelSize, pixelSize, pixelSize);
+        }
+        
+        // Top horizontal line
+        for (let x = 2; x < 14; x++) {
+            ctx.fillRect(x * pixelSize, 0, pixelSize, pixelSize);
+        }
+        
+        // Bottom horizontal line
+        for (let x = 2; x < 14; x++) {
+            ctx.fillRect(x * pixelSize, 30, pixelSize, pixelSize);
+        }
+        
+        // Right curve
+        for (let y = 1; y < 15; y++) {
+            const offset = Math.sin((y / 14) * Math.PI) * 6;
+            const xPos = 26 - Math.round(offset);
+            ctx.fillRect(xPos, y * pixelSize, pixelSize, pixelSize);
+        }
+        
+        // Add a download link
+        const link = document.createElement('a');
+        link.textContent = 'Download Favicon';
+        link.href = canvas.toDataURL();
+        link.download = 'favicon.png';
+        link.style.display = 'block';
+        link.style.marginTop = '20px';
+        document.body.appendChild(link);
+        
+        // Automatically click the link
+        console.log('Right-click on the "Download Favicon" link and save it as favicon.png in the assets/images/ui directory');
+    </script>
+</body>
+</html> 

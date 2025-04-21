@@ -1,0 +1,85 @@
+{
+    "id": "f701f501-eae4-403e-86f8-7499ded113c9",
+    "sceneType": "SCENE",
+    "settings": {
+        "exportClass": true,
+        "autoImport": true,
+        "importFileExtension": true,
+        "preloadPackFiles": [],
+        "createMethodName": "editorCreate",
+        "sceneKey": "main_menu",
+        "borderWidth": 1920,
+        "borderHeight": 1080
+    },
+    "displayList": [
+        {
+            "type": "Image",
+            "id": "66b8f733-ae75-4373-a26d-c38d7116ebdf",
+            "label": "background",
+            "texture": {
+                "key": "background"
+            },
+            "x": 963,
+            "y": 540
+        },
+        {
+            "type": "Image",
+            "id": "33ef43b3-2d1d-4bd2-8490-4b282c5fbb5a",
+            "label": "button2_continue01",
+            "texture": {
+                "key": "button2_continue01"
+            },
+            "x": 427,
+            "y": 618
+        },
+        {
+            "type": "Image",
+            "id": "e8f97448-6c53-4b20-a0bd-bcfe2108faae",
+            "label": "button3_settings01",
+            "texture": {
+                "key": "button3_settings01"
+            },
+            "x": 427,
+            "y": 752
+        },
+        {
+            "type": "Image",
+            "id": "21399918-fa33-4bbe-b2e9-78b838d3998f",
+            "label": "button1_newgame01",
+            "texture": {
+                "key": "button1_newgame01"
+            },
+            "x": 427,
+            "y": 493
+        },
+        {
+            "type": "Image",
+            "id": "af967e31-bbc5-4380-8b11-8adda4ccc0c8",
+            "label": "lOGO3",
+            "texture": {
+                "key": "LOGO3"
+            },
+            "x": 427,
+            "y": 246,
+            "scaleX": 0.4815077620870678,
+            "scaleY": 0.4815077620870678
+        },
+        {
+            "type": "Image",
+            "id": "820593d5-edc6-4a0f-b4f1-2abbd69d1924",
+            "label": "button4_exit01",
+            "texture": {
+                "key": "button4_exit01"
+            },
+            "x": 427,
+            "y": 890
+        }
+    ],
+    "plainObjects": [],
+    "meta": {
+        "app": "Phaser Editor - Scene Editor",
+        "url": "https://phaser.io/editor",
+        "contentType": "phasereditor2d.core.scene.SceneContentType",
+        "version": 5
+    }
+}

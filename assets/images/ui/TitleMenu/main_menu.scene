@@ -1,0 +1,85 @@
+{
+    "id": "f701f501-eae4-403e-86f8-7499ded113c9",
+    "sceneType": "SCENE",
+    "settings": {
+        "exportClass": true,
+        "autoImport": true,
+        "importFileExtension": true,
+        "preloadPackFiles": [],
+        "createMethodName": "editorCreate",
+        "sceneKey": "main_menu",
+        "borderWidth": 1280,
+        "borderHeight": 720
+    },
+    "displayList": [
+        {
+            "type": "Image",
+            "id": "9bfaa781-d6db-4870-9795-8bb68c235514",
+            "label": "background",
+            "texture": {
+                "key": "background"
+            },
+            "x": 619,
+            "y": 339
+        },
+        {
+            "type": "Image",
+            "id": "33ef43b3-2d1d-4bd2-8490-4b282c5fbb5a",
+            "label": "button2_01",
+            "texture": {
+                "key": "button2_01"
+            },
+            "x": 75,
+            "y": 414
+        },
+        {
+            "type": "Image",
+            "id": "e8f97448-6c53-4b20-a0bd-bcfe2108faae",
+            "label": "button3_01",
+            "texture": {
+                "key": "button3_01"
+            },
+            "x": 75,
+            "y": 548
+        },
+        {
+            "type": "Image",
+            "id": "af967e31-bbc5-4380-8b11-8adda4ccc0c8",
+            "label": "lOGO3",
+            "texture": {
+                "key": "LOGO3"
+            },
+            "x": 75,
+            "y": 42,
+            "scaleX": 0.4815077620870678,
+            "scaleY": 0.4815077620870678
+        },
+        {
+            "type": "Image",
+            "id": "21399918-fa33-4bbe-b2e9-78b838d3998f",
+            "label": "button1_01",
+            "texture": {
+                "key": "button1_01"
+            },
+            "x": 75,
+            "y": 289
+        },
+        {
+            "type": "Image",
+            "id": "820593d5-edc6-4a0f-b4f1-2abbd69d1924",
+            "label": "button4_01",
+            "texture": {
+                "key": "button4_01"
+            },
+            "x": 75,
+            "y": 686
+        }
+    ],
+    "plainObjects": [],
+    "meta": {
+        "app": "Phaser Editor - Scene Editor",
+        "url": "https://phaser.io/editor",
+        "contentType": "phasereditor2d.core.scene.SceneContentType",
+        "version": 5
+    }
+}
