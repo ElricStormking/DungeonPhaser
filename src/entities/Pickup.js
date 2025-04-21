@@ -18,14 +18,27 @@ export default class Pickup extends Phaser.Physics.Arcade.Sprite {
         // Set depth and add visual effects
         this.setDepth(2);
         
-        // Add pulsing animation
-        this.scene.tweens.add({ 
-            targets: this, 
-            scale: 1.2, 
-            duration: 500, 
-            yoyo: true, 
-            repeat: -1 
-        });
+        // Store the texture name
+        this.textureKey = texture;
+        
+        // For non-engineer sprites or basic follower sprite, add pulsing animation
+        const engineerSpriteKeys = [
+            'Chronotemporal', 'Voltaic', 'Thunder Mage', 'Sniper', 'Ice Mage',
+            'Dark Mage', 'Ninja', 'Shotgunner', 'Goblin Trapper', 'Shaman',
+            'Holy Bard', 'Shroom Pixie'
+        ];
+        
+        // Only add pulsing to non-animated sprites
+        if (texture === 'pickup' || texture === 'follower' || !engineerSpriteKeys.includes(texture)) {
+            // Add pulsing animation
+            this.scene.tweens.add({ 
+                targets: this, 
+                scale: 1.2, 
+                duration: 500, 
+                yoyo: true, 
+                repeat: -1 
+            });
+        }
     }
     
     /**
@@ -59,14 +72,73 @@ export default class Pickup extends Phaser.Physics.Arcade.Sprite {
      * Factory method to create an engineer pickup
      */
     static createEngineer(scene, x, y, engineerClass) {
-        const engineer = new Pickup(scene, x, y, 'follower');
+        // Use the same sprite texture key as the follower would use
+        let textureKey = 'follower';
+        
+        // Map engineer class name to the correct texture key
+        if (engineerClass.name === 'Chronotemporal') {
+            textureKey = 'Chronotemporal';
+        } else if (engineerClass.name === 'Voltaic') {
+            textureKey = 'Voltaic';
+        } else if (engineerClass.name === 'Thunder Mage') {
+            textureKey = 'Thunder Mage';
+        } else if (engineerClass.name === 'Sniper') {
+            textureKey = 'Sniper';
+        } else if (engineerClass.name === 'Ice Mage') {
+            textureKey = 'Ice Mage';
+        } else if (engineerClass.name === 'Dark Mage') {
+            textureKey = 'Dark Mage';
+        } else if (engineerClass.name === 'Ninja') {
+            textureKey = 'Ninja';
+        } else if (engineerClass.name === 'Shotgunner') {
+            textureKey = 'Shotgunner';
+        } else if (engineerClass.name === 'Goblin Trapper') {
+            textureKey = 'Goblin Trapper';
+        } else if (engineerClass.name === 'Shaman') {
+            textureKey = 'Shaman';
+        } else if (engineerClass.name === 'Holy Bard') {
+            textureKey = 'Holy Bard';
+        } else if (engineerClass.name === 'Shroom Pixie') {
+            textureKey = 'Shroom Pixie';
+        }
+        
+        const engineer = new Pickup(scene, x, y, textureKey);
         
         // Store engineer class data for later use
         engineer.engineerClass = engineerClass;
         engineer.isEngineer = true;
         
-        // Apply engineer color
-        engineer.setTint(engineerClass.color);
+        // Only apply tint to non-animated (basic) engineer pickups
+        if (textureKey === 'follower') {
+            engineer.setTint(engineerClass.color);
+        } else {
+            // Don't tint animated sprites
+            engineer.clearTint();
+            
+            // Setup animations for the pickup
+            const animKey = `${textureKey}_walk_down`;
+            
+            // Check if animation exists before playing
+            if (scene.anims.exists(animKey)) {
+                engineer.play(animKey);
+            } else {
+                // Animation doesn't exist yet, set to first frame of down animation
+                engineer.setFrame(0);
+                
+                // Create a delayed call to check for animations later
+                scene.time.delayedCall(300, () => {
+                    if (engineer.active && scene.anims.exists(animKey)) {
+                        engineer.play(animKey);
+                    }
+                });
+            }
+            
+            // Set to a reasonable scale
+            engineer.setScale(0.75);
+            
+            // Set proper origin
+            engineer.setOrigin(0.5, 0.65);
+        }
         
         // Set up lifespan for engineer pickups
         const lifespan = 20000;
