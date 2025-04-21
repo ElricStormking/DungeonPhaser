@@ -206,7 +206,11 @@ export default class AudioManager {
      */
     safeLoadAudio(key, path) {
         try {
-            this.scene.load.audio(key, path);
+            // Ensure path starts with './' to enforce local loading
+            const localPath = path.startsWith('./') ? path : `./${path}`;
+            console.log(`Loading audio ${key} from local path: ${localPath}`);
+            
+            this.scene.load.audio(key, localPath);
             
             // Set up success listener for this file
             this.scene.load.once(`filecomplete-audio-${key}`, () => {
@@ -227,16 +231,16 @@ export default class AudioManager {
      */
     loadMusic() {
         // Load the 8 music tracks required by design doc
-        this.safeLoadAudio('title_music', 'assets/audio/music/title_theme.mp3');
-        this.safeLoadAudio('chat_music', 'assets/audio/music/chat_theme.mp3');
-        this.safeLoadAudio('gameover_music', 'assets/audio/music/game_over.mp3');
-        this.safeLoadAudio('map_music', 'assets/audio/music/map_theme.mp3');
+        this.safeLoadAudio('title_music', './assets/audio/music/title_theme.mp3');
+        this.safeLoadAudio('chat_music', './assets/audio/music/chat_theme.mp3');
+        this.safeLoadAudio('gameover_music', './assets/audio/music/game_over.mp3');
+        this.safeLoadAudio('map_music', './assets/audio/music/map_theme.mp3');
         
         // 4 BGMs for the 4 stages
-        this.safeLoadAudio('bgm_stage1', 'assets/audio/music/stage1.mp3');
-        this.safeLoadAudio('bgm_stage2', 'assets/audio/music/stage2.mp3');
-        this.safeLoadAudio('bgm_stage3', 'assets/audio/music/stage3.mp3');
-        this.safeLoadAudio('bgm_stage4', 'assets/audio/music/stage4.mp3');
+        this.safeLoadAudio('bgm_stage1', './assets/audio/music/stage1.mp3');
+        this.safeLoadAudio('bgm_stage2', './assets/audio/music/stage2.mp3');
+        this.safeLoadAudio('bgm_stage3', './assets/audio/music/stage3.mp3');
+        this.safeLoadAudio('bgm_stage4', './assets/audio/music/stage4.mp3');
     }
     
     /**
@@ -244,21 +248,21 @@ export default class AudioManager {
      */
     loadSoundEffects() {
         // Player sounds
-        this.safeLoadAudio('level_up', 'assets/audio/sfx/level_up.mp3');
-        this.safeLoadAudio('victory', 'assets/audio/sfx/victory.mp3');
-        this.safeLoadAudio('player_damage', 'assets/audio/sfx/player_damage.mp3');
+        this.safeLoadAudio('level_up', './assets/audio/sfx/level_up.mp3');
+        this.safeLoadAudio('victory', './assets/audio/sfx/victory.mp3');
+        this.safeLoadAudio('player_damage', './assets/audio/sfx/player_damage.mp3');
         
         // Attack sounds (5 types as per design doc)
-        this.safeLoadAudio('attack_melee', 'assets/audio/sfx/attack_melee.mp3');
-        this.safeLoadAudio('attack_ranged', 'assets/audio/sfx/attack_ranged.mp3');
-        this.safeLoadAudio('attack_magic', 'assets/audio/sfx/attack_magic.mp3');
-        this.safeLoadAudio('attack_aoe', 'assets/audio/sfx/attack_aoe.mp3');
-        this.safeLoadAudio('attack_special', 'assets/audio/sfx/attack_special.mp3');
+        this.safeLoadAudio('attack_melee', './assets/audio/sfx/attack_melee.mp3');
+        this.safeLoadAudio('attack_ranged', './assets/audio/sfx/attack_ranged.mp3');
+        this.safeLoadAudio('attack_magic', './assets/audio/sfx/attack_magic.mp3');
+        this.safeLoadAudio('attack_aoe', './assets/audio/sfx/attack_aoe.mp3');
+        this.safeLoadAudio('attack_special', './assets/audio/sfx/attack_special.mp3');
         
         // Additional gameplay sounds
-        this.safeLoadAudio('pickup', 'assets/audio/sfx/pickup.mp3');
-        this.safeLoadAudio('enemy_death', 'assets/audio/sfx/enemy_death.mp3');
-        this.safeLoadAudio('boss_spawn', 'assets/audio/sfx/boss_spawn.mp3');
+        this.safeLoadAudio('pickup', './assets/audio/sfx/pickup.mp3');
+        this.safeLoadAudio('enemy_death', './assets/audio/sfx/enemy_death.mp3');
+        this.safeLoadAudio('boss_spawn', './assets/audio/sfx/boss_spawn.mp3');
     }
     
     /**
@@ -279,9 +283,9 @@ export default class AudioManager {
         try {
             // Define path mapping for critical sounds
             const criticalAudioPaths = {
-                'gameover_music': 'assets/audio/music/game_over.mp3',
-                'bgm_stage1': 'assets/audio/music/stage1.mp3',
-                'title_music': 'assets/audio/music/title_theme.mp3'
+                'gameover_music': './assets/audio/music/game_over.mp3',
+                'bgm_stage1': './assets/audio/music/stage1.mp3',
+                'title_music': './assets/audio/music/title_theme.mp3'
             };
             
             // Check if we have a path for this key
@@ -289,7 +293,7 @@ export default class AudioManager {
                 return false;
             }
             
-            console.log(`Emergency reload of audio: ${key}`);
+            console.log(`Emergency reload of audio: ${key} from ${criticalAudioPaths[key]}`);
             
             // Force load directly into the scene's sound system
             const sound = this.scene.sound.add(key);
@@ -542,10 +546,10 @@ export default class AudioManager {
     reloadSFX(key) {
         // Define the paths for commonly used sound effects
         const sfxPaths = {
-            'pickup': 'assets/audio/sfx/pickup.mp3',
-            'player_damage': 'assets/audio/sfx/player_damage.mp3',
-            'enemy_death': 'assets/audio/sfx/enemy_death.mp3',
-            'level_up': 'assets/audio/sfx/level_up.mp3'
+            'pickup': './assets/audio/sfx/pickup.mp3',
+            'player_damage': './assets/audio/sfx/player_damage.mp3',
+            'enemy_death': './assets/audio/sfx/enemy_death.mp3',
+            'level_up': './assets/audio/sfx/level_up.mp3'
         };
         
         if (!sfxPaths[key]) {
@@ -553,10 +557,16 @@ export default class AudioManager {
         }
         
         try {
-            // Force add to sound manager
-            this.scene.sound.add(key);
-            this.loadedAudio.add(key);
-            console.log(`Reloaded sound effect: ${key}`);
+            // Force add to sound manager with explicit path
+            this.scene.load.audio(key, sfxPaths[key]);
+            this.scene.load.start(); // Start loading
+            
+            // Set up a one-time listener for when this file is loaded
+            this.scene.load.once(`filecomplete-audio-${key}`, () => {
+                this.loadedAudio.add(key);
+                console.log(`Successfully reloaded sound effect: ${key} from ${sfxPaths[key]}`);
+            });
+            
             return true;
         } catch (error) {
             console.warn(`Failed to reload sound effect ${key}:`, error);
