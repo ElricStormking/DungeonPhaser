@@ -32,7 +32,7 @@ export const WAVE_COUNT = 5; // 5 waves per level
 export const BOSS_LEVEL_INTERVAL = 8; // Boss appears every 8 levels
 
 // Game mechanics constants
-export const MAX_FOLLOWERS = 10; // Maximum number of followers the player can have
+export const MAX_FOLLOWERS = 12; // Maximum number of followers the player can have
 export const BASE_PLAYER_SPEED = 200; // Increased base movement speed for larger world
 export const BASE_ENEMY_SPEED = 160; // Increased base enemy speed
 
