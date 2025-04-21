@@ -1,5 +1,5 @@
 import Projectile from '../entities/Projectile.js';
-import { TILE_SIZE } from '../constants.js';
+import { TILE_SIZE, MAX_FOLLOWERS } from '../constants.js';
 
 /**
  * Handles combat interactions, projectiles, and collision detection
@@ -120,9 +120,6 @@ export default class CombatSystem {
     handlePickupCollection(player, pickup) {
         if (!pickup.active) return;
         
-        // Create a new follower
-        this.createFollower();
-        
         // Play pickup sound with special reliable method
         if (this.scene.audioManager) {
             this.scene.audioManager.playPickupSound();
@@ -159,6 +156,33 @@ export default class CombatSystem {
         
         const engineerClass = engineer.engineerClass;
         
+        // Check if team is already full
+        if (this.scene.followers.length >= MAX_FOLLOWERS) {
+            // Show notification that team is full
+            const fullTeamText = this.scene.add.text(
+                engineer.x, 
+                engineer.y - 20, 
+                `Team is full! (Max ${MAX_FOLLOWERS})`, 
+                { 
+                    fontSize: '16px', 
+                    fontFamily: 'Arial', 
+                    fill: '#FF5555', 
+                    stroke: '#000000', 
+                    strokeThickness: 3 
+                }
+            ).setOrigin(0.5);
+            
+            this.scene.tweens.add({
+                targets: fullTeamText,
+                y: fullTeamText.y - 30,
+                alpha: 0,
+                duration: 1500,
+                onComplete: () => fullTeamText.destroy()
+            });
+            
+            return;
+        }
+        
         // Create a class follower
         this.createClassFollower(engineerClass);
         
@@ -171,7 +195,7 @@ export default class CombatSystem {
         const notificationText = this.scene.add.text(
             engineer.x, 
             engineer.y - 20, 
-            `${engineerClass.name} joined!`, 
+            `${engineerClass.name} joined! (${this.scene.followers.length}/${MAX_FOLLOWERS})`, 
             { 
                 fontSize: '16px', 
                 fontFamily: 'Arial', 
