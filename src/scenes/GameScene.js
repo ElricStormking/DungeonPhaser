@@ -646,91 +646,27 @@ export default class GameScene extends Phaser.Scene {
      * Set up UI elements
      */
     setupUI() {
-        // Create the UI elements with a consistent depth
-        const uiDepth = 100;
+        // Create UI manager
+        this.uiManager = new UIManager(this);
         
-        // Position values for the right side of the screen
-        const rightPadding = GAME_WIDTH - 220;
+        // Set initial UI values
+        this.uiManager.updateScore(this.score);
         
-        // Generate healthbar graphics procedurally instead of loading images
-        // Background bar (dark gray)
-        this.healthBarBg = this.add.graphics();
-        this.healthBarBg.fillStyle(0x333333, 1);
-        this.healthBarBg.fillRect(rightPadding, 20, 200, 20);
-        this.healthBarBg.lineStyle(2, 0x555555, 1);
-        this.healthBarBg.strokeRect(rightPadding, 20, 200, 20);
-        this.healthBarBg.setScrollFactor(0);
-        this.healthBarBg.setDepth(uiDepth);
+        // Initialize stage/level display
+        this.uiManager.updateLevelStageInfo(this.currentLevel);
         
-        // Health fill (green)
-        this.healthBarFill = this.add.graphics();
-        this.healthBarFill.fillStyle(0x00ff00, 1);
-        this.healthBarFill.fillRect(rightPadding, 20, 200, 20);
-        this.healthBarFill.setScrollFactor(0);
-        this.healthBarFill.setDepth(uiDepth);
-        
-        // Ready indicator (shows between waves)
-        this.readyText = this.add.text(GAME_WIDTH - 150, 20, 'READY', {
-            fontSize: '16px',
-            fontFamily: 'Arial',
-            color: '#00ff00',
-            stroke: '#000000',
-            strokeThickness: 3
-        })
-        .setScrollFactor(0)
-        .setDepth(uiDepth)
-        .setVisible(false);
-        
-        // Health display - positioned to the left of the health bar
-        this.healthText = this.add.text(
-            rightPadding - 10, 
-            20, 
-            'Health: 0/0', 
-            {
-                fontSize: '20px',
-                fontFamily: 'Arial',
-                color: '#00ff00',
-                stroke: '#000000',
-                strokeThickness: 3
-            }
-        )
-        .setScrollFactor(0)
-        .setDepth(uiDepth)
-        .setOrigin(1, 0.5); // Right-aligned, vertically centered
-        
-        // Update health display initially
+        // Initialize health bar management
         this.updateHealthDisplay();
     }
     
     /**
-     * Update health display text and bar
+     * Update health display
      */
     updateHealthDisplay() {
-        if (this.player && this.healthText) {
-            // Position values for the right side of the screen
-            const rightPadding = GAME_WIDTH - 220;
-            
-            // Update text
-            this.healthText.setText(`Health: ${Math.floor(this.player.health)}/${this.player.maxHealth}`);
-            
-            // Color based on health percent
-            const healthPercent = this.player.health / this.player.maxHealth;
-            let color = '#00ff00'; // Green
-            if (healthPercent < 0.3) {
-                color = '#ff0000'; // Red
-            } else if (healthPercent < 0.6) {
-                color = '#ffff00'; // Yellow
-            }
-            this.healthText.setColor(color);
-            
-            // Update health bar fill
-            if (this.healthBarFill) {
-                this.healthBarFill.clear();
-                this.healthBarFill.fillStyle(parseInt(color.replace('#', '0x')), 1);
-                const fillWidth = Math.max(0, Math.min(200 * healthPercent, 200));
-                this.healthBarFill.fillRect(rightPadding, 20, fillWidth, 20);
-            }
-        }
+        if (!this.player || !this.uiManager) return;
+        
+        // Use the UI manager to update health display if needed
+        this.uiManager.updateHealthDisplay(this.player.health, this.player.maxHealth);
     }
     
     /**
@@ -940,6 +876,11 @@ export default class GameScene extends Phaser.Scene {
     updateLevel(level) {
         // Update wave info and current level
         this.currentLevel = level;
+        
+        // Update the stage/level display
+        if (this.uiManager) {
+            this.uiManager.updateLevelStageInfo(level);
+        }
         
         // Update the LevelSystem's level
         if (this.levelSystem) {
@@ -1190,12 +1131,12 @@ export default class GameScene extends Phaser.Scene {
         // Determine which background to use based on level
         let backgroundKey = 'gamemap_01';
         
-        if (level >= 16) {
-            backgroundKey = 'gamemap_04';  // Stage 4 (levels 16+)
-        } else if (level >= 11) {
-            backgroundKey = 'gamemap_03';  // Stage 3 (levels 11-15)
-        } else if (level >= 6) {
-            backgroundKey = 'gamemap_02';  // Stage 2 (levels 6-10)
+        if (level >= 25) {
+            backgroundKey = 'gamemap_04';  // Stage 4 (levels 25-32)
+        } else if (level >= 17) {
+            backgroundKey = 'gamemap_03';  // Stage 3 (levels 17-24)
+        } else if (level >= 9) {
+            backgroundKey = 'gamemap_02';  // Stage 2 (levels 9-16)
         }
         
         console.log(`Setting background for level ${level}: ${backgroundKey}`);
