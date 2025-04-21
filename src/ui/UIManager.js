@@ -13,6 +13,7 @@ export default class UIManager {
         this.specialCooldownBar = null;
         this.cooldownText = null;
         this.uiBackground = null;
+        this.stageLevelText = null;
         
         // Wave info elements
         this.waveInfoText = null;
@@ -86,6 +87,17 @@ export default class UIManager {
             UI_PADDING, 
             UI_PADDING, 
             `${this.scene.player.heroClass.name}`, 
+            style
+        )
+            .setDepth(UI_DEPTH)
+            .setScrollFactor(0)
+            .setOrigin(0, 0);
+        
+        // Stage & Level Text - positioned at top-left middle
+        this.stageLevelText = this.scene.add.text(
+            UI_PADDING + 200, 
+            UI_PADDING, 
+            `Stage 1 - Level 1`, 
             style
         )
             .setDepth(UI_DEPTH)
@@ -541,6 +553,58 @@ export default class UIManager {
         restartButton.on('pointerdown', () => {
             scene.scene.start('TitleScene');
         });
+    }
+    
+    /**
+     * Update the stage and level information display
+     * @param {number} level - Current game level
+     */
+    updateLevelStageInfo(level) {
+        if (!this.stageLevelText) return;
+        
+        // Calculate which stage we're on based on the new level ranges
+        let stage = 1;
+        
+        if (level >= 25) {
+            stage = 4;      // Stage 4: Levels 25-32
+        } else if (level >= 17) {
+            stage = 3;      // Stage 3: Levels 17-24
+        } else if (level >= 9) {
+            stage = 2;      // Stage 2: Levels 9-16
+        }
+        
+        // Update the text
+        this.stageLevelText.setText(`Stage ${stage} - Level ${level}`);
+        
+        // Optional: Change the color based on stage for visual feedback
+        switch (stage) {
+            case 1:
+                this.stageLevelText.setFill('#FFFFFF'); // White for stage 1
+                break;
+            case 2:
+                this.stageLevelText.setFill('#AAFFAA'); // Light green for stage 2
+                break;
+            case 3:
+                this.stageLevelText.setFill('#AAAAFF'); // Light blue for stage 3
+                break;
+            case 4:
+                this.stageLevelText.setFill('#FFAAAA'); // Light red for stage 4
+                break;
+            default:
+                this.stageLevelText.setFill('#FFAA00'); // Orange for higher stages
+                break;
+        }
+    }
+    
+    /**
+     * Update health display
+     * @param {number} health - Current health
+     * @param {number} maxHealth - Maximum health
+     */
+    updateHealthDisplay(health, maxHealth) {
+        // Implement if needed based on your UI design
+        // In this case, we don't need to do anything since health is 
+        // already displayed in the top UI bar
     }
     
     /**
