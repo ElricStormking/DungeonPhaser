@@ -1,0 +1,40 @@
+{
+  "name": "PixelArtGame Story",
+  "startScene": "yaju_script",
+  "assets": {
+    "characters": "characters.json",
+    "backgrounds": "backgrounds.json",
+    "audio": {
+      "music": {
+        "Pixelated Farewell": "Pixelated_Farewell.mp3"
+      },
+      "sfx": {}
+    },
+    "gui": {
+      "textBox": "textbox.png",
+      "namebox": "namebox.png"
+    }
+  },
+  "guiConfig": {
+    "textSpeed": 40,
+    "autoSpeed": 150,
+    "screenWidth": 1920,
+    "screenHeight": 1080,
+    "textBoxHeight": 140,
+    "textBoxPadding": 20,
+    "nameFontSize": 24,
+    "dialogueFontSize": 20,
+    "choiceButtonWidth": 200,
+    "choiceButtonHeight": 50
+  },
+  "fonts": {
+    "default": {
+      "family": "Arial",
+      "color": "#FFFFFF",
+      "size": 20
+    }
+  },
+  "transitions": {
+    "fade": 500
+  }
+}

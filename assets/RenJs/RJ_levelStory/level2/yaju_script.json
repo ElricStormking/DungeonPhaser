@@ -1,0 +1,70 @@
+{
+  "yaju_scene": [
+    {
+      "setBackground": {
+        "name": "Courtyard",
+        "transitionName": "fade",
+        "transitionDuration": 500
+      }
+    },
+    {
+      "playMusic": {
+        "name": "Pixelated Farewell",
+        "loop": true,
+        "volume": 1.0
+      }
+    },
+    {
+      "narrate": "在樓頂曬太陽時，露西請凱莎喝了冰紅茶。"
+    },
+    {
+      "showCharacter": {
+        "name": "Lucy",
+        "look": "default",
+        "position": "left",
+        "transitionName": "fadeIn",
+        "transitionDuration": 300
+      }
+    },
+    {
+      "say": {
+        "character": "Lucy",
+        "text": "只有紅茶可以嗎？"
+      }
+    },
+    {
+      "showCharacter": {
+        "name": "Keisha",
+        "look": "default",
+        "position": "right",
+        "transitionName": "fadeIn",
+        "transitionDuration": 300
+      }
+    },
+    {
+      "say": {
+        "character": "Keisha",
+        "text": "哼！哼！哼啊啊啊啊啊啊啊啊啊—————！！！"
+      }
+    },
+    {
+      "stopMusic": {
+        "fadeOut": 1000
+      }
+    },
+    {
+      "hideAllCharacters": {
+        "transitionName": "fadeOut",
+        "transitionDuration": 300
+      }
+    },
+    {
+      "setBackground": {
+        "name": "EndScene"
+      }
+    },
+    {
+      "endGame": {}
+    }
+  ]
+}

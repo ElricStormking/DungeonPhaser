@@ -1,0 +1,262 @@
+{
+  "Ere": {
+    "displayName": "艾蕾",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Ere.png",
+        "position": "center"
+      }
+    }
+  },
+  "Erin": {
+    "displayName": "艾琳",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Erin.png",
+        "position": "center"
+      }
+    }
+  },
+  "Evelyn": {
+    "displayName": "伊芙琳",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Evelyn.png",
+        "position": "center"
+      }
+    }
+  },
+  "Hard": {
+    "displayName": "哈德",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Hard.png",
+        "position": "center"
+      }
+    }
+  },
+  "Huntress1": {
+    "displayName": "女獵手",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Huntress1.png",
+        "position": "center"
+      }
+    }
+  },
+  "Jenna": {
+    "displayName": "潔娜",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Jenna.png",
+        "position": "center"
+      }
+    }
+  },
+  "Jessica": {
+    "displayName": "潔西卡",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Jessica.png",
+        "position": "center"
+      }
+    }
+  },
+  "Karen": {
+    "displayName": "卡蓮",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Karen.png",
+        "position": "center"
+      }
+    }
+  },
+  "Keeper1": {
+    "displayName": "守夜人",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Keeper1.png",
+        "position": "center"
+      }
+    }
+  },
+  "Keisha": {
+    "displayName": "凱莎",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Keisha.png",
+        "position": "center"
+      }
+    }
+  },
+  "Lena": {
+    "displayName": "蕾娜",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Lena.png",
+        "position": "center"
+      }
+    }
+  },
+  "Lilith": {
+    "displayName": "莉莉絲",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Lilith.png",
+        "position": "center"
+      }
+    }
+  },
+  "Lucy": {
+    "displayName": "露西",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Lucy.png",
+        "position": "center"
+      }
+    }
+  },
+  "Maid1": {
+    "displayName": "女僕",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Maid1.png",
+        "position": "center"
+      }
+    }
+  },
+  "Mia": {
+    "displayName": "米婭",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Mia.png",
+        "position": "center"
+      }
+    }
+  },
+  "Millie": {
+    "displayName": "蜜莉",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Millie.png",
+        "position": "center"
+      }
+    }
+  },
+  "Nia": {
+    "displayName": "妮婭",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Nia.png",
+        "position": "center"
+      }
+    }
+  },
+  "Quick": {
+    "displayName": "魁克",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Quick.png",
+        "position": "center"
+      }
+    }
+  },
+  "Rhea": {
+    "displayName": "蕾婭",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Rhea.png",
+        "position": "center"
+      }
+    }
+  },
+  "Sandy": {
+    "displayName": "姍迪",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Sandy.png",
+        "position": "center"
+      }
+    }
+  },
+  "Semia": {
+    "displayName": "瑟米亞",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Semia.png",
+        "position": "center"
+      }
+    }
+  },
+  "Small": {
+    "displayName": "斯摩",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Small.png",
+        "position": "center"
+      }
+    }
+  },
+  "Soft": {
+    "displayName": "索夫特",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Soft.png",
+        "position": "center"
+      }
+    }
+  },
+  "Sona": {
+    "displayName": "索娜",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Sona.png",
+        "position": "center"
+      }
+    }
+  },
+  "Thanonda": {
+    "displayName": "塔農達",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Thanonda.png",
+        "position": "center"
+      }
+    }
+  },
+  "Vera": {
+    "displayName": "薇拉",
+    "speechColor": "#FFFFFF",
+    "looks": {
+      "default": {
+        "image": "Vera.png",
+        "position": "center"
+      }
+    }
+  }
+}

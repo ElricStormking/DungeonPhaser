@@ -1,0 +1,118 @@
+{
+  "story_scene_name": [
+    {
+      "setBackground": {
+        "name": "Courtyard",
+        "transitionName": "fade",
+        "transitionDuration": 500
+      }
+    },
+    {
+      "playMusic": {
+        "name": "Pixelated Farewell",
+        "loop": true,
+        "volume": 1.0
+      }
+    },
+    {
+      "narrate": "Narration text goes here."
+    },
+    {
+      "showCharacter": {
+        "name": "CharacterName",
+        "look": "default",
+        "position": "left",
+        "transitionName": "fadeIn",
+        "transitionDuration": 300
+      }
+    },
+    {
+      "say": {
+        "character": "CharacterName",
+        "text": "Dialogue text goes here."
+      }
+    },
+    {
+      "showCharacter": {
+        "name": "AnotherCharacter",
+        "look": "default",
+        "position": "right",
+        "transitionName": "fadeIn",
+        "transitionDuration": 300
+      }
+    },
+    {
+      "say": {
+        "character": "AnotherCharacter",
+        "text": "Response dialogue goes here."
+      }
+    },
+    {
+      "wait": {
+        "time": 1000
+      }
+    },
+    {
+      "choice": {
+        "text": "What would you like to do?",
+        "options": [
+          {
+            "text": "Option 1",
+            "action": "jumpToLabel",
+            "label": "option1"
+          },
+          {
+            "text": "Option 2",
+            "action": "jumpToLabel",
+            "label": "option2"
+          }
+        ]
+      }
+    },
+    {
+      "label": "option1"
+    },
+    {
+      "say": {
+        "character": "CharacterName",
+        "text": "You chose option 1."
+      }
+    },
+    {
+      "jumpToLabel": {
+        "label": "continue"
+      }
+    },
+    {
+      "label": "option2"
+    },
+    {
+      "say": {
+        "character": "AnotherCharacter",
+        "text": "You chose option 2."
+      }
+    },
+    {
+      "label": "continue"
+    },
+    {
+      "stopMusic": {
+        "fadeOut": 1000
+      }
+    },
+    {
+      "hideAllCharacters": {
+        "transitionName": "fadeOut",
+        "transitionDuration": 300
+      }
+    },
+    {
+      "setBackground": {
+        "name": "EndScene"
+      }
+    },
+    {
+      "endGame": {}
+    }
+  ]
+} 

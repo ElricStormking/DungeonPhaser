@@ -1,0 +1,113 @@
+{
+  "Courtyard": {
+    "image": "Courtyard.png"
+  },
+  "Forest": {
+    "image": "Forest.png"
+  },
+  "Stable": {
+    "image": "Stable.png"
+  },
+  "LucyHCG1": {
+    "image": "LucyHCG1.png"
+  },
+  "LucyHCG2": {
+    "image": "LucyHCG2.png"
+  },
+  "LucyHCG3": {
+    "image": "LucyHCG3.png"
+  },
+  "LucyHCG4": {
+    "image": "LucyHCG4.png"
+  },
+  "SemiaHCG": {
+    "image": "SemiaHCG.png"
+  },
+  "Maid1HCG": {
+    "image": "Maid1HCG.png"
+  },
+  "Huntress1HCG": {
+    "image": "Huntress1HCG.png"
+  },
+  "JennaHCG": {
+    "image": "JennaHCG.png"
+  },
+  "Keeper1HCG": {
+    "image": "Keeper1HCG.png"
+  },
+  "KeishaHCG1": {
+    "image": "KeishaHCG1.png"
+  },
+  "KeishaHCG2": {
+    "image": "KeishaHCG2.png"
+  },
+  "KeishaHCG3": {
+    "image": "KeishaHCG3.png"
+  },
+  "KeishaHCG4": {
+    "image": "KeishaHCG4.png"
+  },
+  "NiaHCG": {
+    "image": "NiaHCG.png"
+  },
+  "SandyHCG": {
+    "image": "SandyHCG.png"
+  },
+  "SonaHCG": {
+    "image": "SonaHCG.png"
+  },
+  "RheaHCG": {
+    "image": "RheaHCG.png"
+  },
+  "MillieHCG1": {
+    "image": "MillieHCG1.png"
+  },
+  "MillieHCG2": {
+    "image": "MillieHCG2.png"
+  },
+  "MillieHCG3": {
+    "image": "MillieHCG3.png"
+  },
+  "MillieHCG4": {
+    "image": "MillieHCG4.png"
+  },
+  "ErinHCG": {
+    "image": "ErinHCG.png"
+  },
+  "LilithHCG": {
+    "image": "LilithHCG.png"
+  },
+  "MiaHCG": {
+    "image": "MiaHCG.png"
+  },
+  "VeraHCG": {
+    "image": "VeraHCG.png"
+  },
+  "EreHCG": {
+    "image": "EreHCG.png"
+  },
+  "KarenHCG1": {
+    "image": "KarenHCG1.png"
+  },
+  "KarenHCG2": {
+    "image": "KarenHCG2.png"
+  },
+  "JessicaHCG1": {
+    "image": "JessicaHCG1.png"
+  },
+  "JessicaHCG2": {
+    "image": "JessicaHCG2.png"
+  },
+  "LenaHCG": {
+    "image": "LenaHCG.png"
+  },
+  "EvelynHCG1": {
+    "image": "EvelynHCG1.png"
+  },
+  "EvelynHCG2": {
+    "image": "EvelynHCG2.png"
+  },
+  "EndScene": {
+    "image": "EndScene.png"
+  }
+}
