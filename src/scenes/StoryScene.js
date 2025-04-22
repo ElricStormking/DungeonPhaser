@@ -1050,6 +1050,8 @@ export default class StoryScene extends Phaser.Scene {
         }
         
         // Create array of relative paths - ALWAYS use ./ to enforce local paths
+        // Using ./ prefix ensures the browser will look for files relative to the current page location
+        // rather than trying to use absolute server paths
         const musicPaths = [
             `./assets/RenJs/music/${musicName}.mp3`,
             `./assets/RenJs/music/${musicName}.ogg`,
@@ -1064,7 +1066,7 @@ export default class StoryScene extends Phaser.Scene {
             this.testAudioFileExistence(musicPaths);
         }
         
-        // DIRECT APPROACH: Use HTML5 Audio
+        // Try loading audio using HTML5 Audio element (this uses direct file paths)
         this.tryLoadAudio(musicPaths, 0, { ...params, music: musicName });
     }
     
@@ -1089,11 +1091,15 @@ export default class StoryScene extends Phaser.Scene {
     
     /**
      * Try loading audio from array of paths
+     * @param {Array} paths - Array of file paths to try
+     * @param {number} index - Current index in the paths array
+     * @param {Object} params - Parameters for audio playback
      */
     tryLoadAudio(paths, index, params) {
         // If we've tried all the paths, we should stop
         if (index >= paths.length) {
-            console.error(`Failed to load audio after trying all formats for: ${params.music || 'unknown'}`);
+            console.error(`Failed to load audio after trying all formats for: ${params.music || params.name || 'unknown'}`);
+            // Continue to the next action even if audio failed to load
             this.processNextAction();
             return;
         }
@@ -1105,23 +1111,40 @@ export default class StoryScene extends Phaser.Scene {
         
         // Setup event handlers
         audio.addEventListener('canplaythrough', () => {
-            console.log(`Successfully loaded audio from: ${audioPath}`);
+            console.log(`✅ Successfully loaded audio from: ${audioPath}`);
             this.playAudioElement(audio, params);
         }, { once: true });
         
         audio.addEventListener('error', (e) => {
-            console.error(`Failed to load audio: ${audioPath}`, e);
+            console.error(`❌ Failed to load audio: ${audioPath}`, e);
             console.log(`Trying next format option (${index + 1}/${paths.length})`);
+            
+            // Log more details about the error
+            const errorDetails = e.target && e.target.error ? e.target.error.code : 'unknown error';
+            console.log(`Audio loading error details: ${errorDetails}`);
+            
             // Try next format after a short delay
             setTimeout(() => {
                 this.tryLoadAudio(paths, index + 1, params);
-            }, 100);
+            }, 200); // Increased delay to give browser more time
         }, { once: true });
         
         // Start loading
         try {
+            // Clear any previous source first
+            audio.src = '';
+            
+            // Set the new source and start loading
             audio.src = audioPath;
             audio.load();
+            
+            // Set a timeout in case the error event doesn't fire
+            setTimeout(() => {
+                if (audio.readyState === 0) { // HAVE_NOTHING state
+                    console.warn(`Audio loading timed out for ${audioPath}`);
+                    this.tryLoadAudio(paths, index + 1, params);
+                }
+            }, 3000); // 3 second timeout
         } catch (error) {
             console.error(`Error setting audio source: ${error.message}`);
             // Try next format immediately on error
@@ -1131,35 +1154,58 @@ export default class StoryScene extends Phaser.Scene {
     
     /**
      * Play loaded audio element
+     * @param {HTMLAudioElement} audioElement - The audio element to play
+     * @param {Object} params - Playback parameters
      */
     playAudioElement(audioElement, params) {
         try {
             // Stop any currently playing music
             if (this.currentAudio) {
-                this.currentAudio.pause();
-                this.currentAudio.currentTime = 0;
+                try {
+                    this.currentAudio.pause();
+                    this.currentAudio.currentTime = 0;
+                } catch (e) {
+                    console.warn('Error stopping previous audio:', e);
+                    // Continue anyway
+                }
             }
             
             // Set up the audio element
             this.currentAudio = audioElement;
-            this.currentAudio.loop = params.loop || false;
-            this.currentAudio.volume = params.volume || 1.0;
+            this.currentAudio.loop = params.loop !== undefined ? params.loop : false;
+            this.currentAudio.volume = params.volume !== undefined ? params.volume : 0.7; // Default to 70% volume
             
             // Play the audio
+            console.log(`Playing audio: ${params.music || params.name}, loop: ${this.currentAudio.loop}, volume: ${this.currentAudio.volume}`);
             const playPromise = this.currentAudio.play();
             
             // Handle autoplay restrictions in browsers
             if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.error(`Error playing audio: ${error}`);
-                    // Add a play button if autoplay is blocked
-                    if (error.name === 'NotAllowedError') {
-                        this.addPlayButton();
-                    }
-                });
+                playPromise
+                    .then(() => {
+                        console.log('Audio playback started successfully');
+                        
+                        // If the user has interacted with the document, we store this
+                        // to know we can autoplay audio in future
+                        window.userHasInteracted = true;
+                    })
+                    .catch(error => {
+                        console.error(`Error playing audio: ${error.message}`);
+                        
+                        // Check for common autoplay policy issues
+                        if (error.name === 'NotAllowedError') {
+                            console.warn('Autoplay prevented by browser policy - user interaction required');
+                            
+                            // Add visual play button if autoplay is blocked
+                            this.addPlayButton();
+                            
+                            // Store audio to play when user interacts
+                            window.pendingAudio = this.currentAudio;
+                        }
+                    });
             }
             
-            // Continue to next action
+            // Continue to next action regardless of audio playback success
             this.processNextAction();
         } catch (error) {
             console.error(`Error with audio playback: ${error.message}`);
@@ -1306,19 +1352,71 @@ export default class StoryScene extends Phaser.Scene {
      * Add a play button if autoplay is blocked
      */
     addPlayButton() {
+        // Remove any existing buttons first
+        const existingButtons = document.querySelectorAll('button[data-purpose="play-music"]');
+        existingButtons.forEach(button => button.remove());
+        
+        // Create a new styled button
         const button = document.createElement('button');
-        button.textContent = 'Play Music';
-        button.style.position = 'absolute';
-        button.style.top = '10px';
-        button.style.right = '10px';
-        button.style.zIndex = '1000';
+        button.textContent = '▶ Play Music';
         button.dataset.purpose = 'play-music'; // Add attribute for easier selection
+        
+        // Style the button
+        Object.assign(button.style, {
+            position: 'absolute',
+            top: '20px',
+            right: '20px',
+            zIndex: '1000',
+            padding: '8px 16px',
+            backgroundColor: '#4a90e2',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+        });
+        
+        // Add hover effect
+        button.onmouseover = () => {
+            button.style.backgroundColor = '#357ae8';
+        };
+        button.onmouseout = () => {
+            button.style.backgroundColor = '#4a90e2';
+        };
+        
+        // Add click handler
         button.addEventListener('click', () => {
+            // Set flag that user has interacted with the page
+            window.userHasInteracted = true;
+            
+            // Play current audio if it exists
             if (this.currentAudio) {
-                this.currentAudio.play();
-                button.remove();
+                this.currentAudio.play()
+                    .then(() => {
+                        console.log('Audio playback started by user interaction');
+                        button.remove();
+                    })
+                    .catch(err => {
+                        console.error('Still failed to play audio:', err);
+                    });
+            }
+            
+            // Also try to play any pending audio stored in window
+            if (window.pendingAudio) {
+                window.pendingAudio.play()
+                    .then(() => {
+                        console.log('Pending audio playback started');
+                        window.pendingAudio = null;
+                        button.remove();
+                    })
+                    .catch(err => {
+                        console.error('Failed to play pending audio:', err);
+                    });
             }
         });
+        
+        // Add to document
         document.body.appendChild(button);
     }
 } 

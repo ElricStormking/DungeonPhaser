@@ -610,8 +610,10 @@ export default class GameScene extends Phaser.Scene {
         // Create movement system
         this.movementSystem = new MovementSystem(this);
         
-        // Create UI manager first so the background is created
-        this.uiManager = new UIManager(this);
+        // Create UI manager only if it doesn't exist yet
+        if (!this.uiManager) {
+            this.uiManager = new UIManager(this);
+        }
         
         // Create spawn system
         this.spawnSystem = new SpawnSystem(this);
@@ -646,8 +648,10 @@ export default class GameScene extends Phaser.Scene {
      * Set up UI elements
      */
     setupUI() {
-        // Create UI manager
-        this.uiManager = new UIManager(this);
+        // Use existing UI manager instead of creating a new one
+        if (!this.uiManager) {
+            this.uiManager = new UIManager(this);
+        }
         
         // Set initial UI values
         this.uiManager.updateScore(this.score);
