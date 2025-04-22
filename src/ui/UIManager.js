@@ -153,7 +153,7 @@ export default class UIManager {
         // Create wave info container - positioned at the center-top
         // Adjust vertical positioning to prevent overlap
         this.waveContainer = this.scene.add.container(
-            GAME_WIDTH / 2 - 100, // Move to the left to avoid overlap with level info
+            GAME_WIDTH / 2 + 50, // Move to the right side of center to avoid overlap with level info
             UI_BAR_HEIGHT / 2 - 5  // Move it slightly higher
         )
             .setDepth(UI_DEPTH + 1)
@@ -562,15 +562,14 @@ export default class UIManager {
     updateLevelStageInfo(level) {
         if (!this.stageLevelText) return;
         
-        // Calculate which stage we're on based on the new level ranges
+        // Calculate which stage we're on (stages are groups of 8 levels each)
         let stage = 1;
-        
         if (level >= 25) {
-            stage = 4;      // Stage 4: Levels 25-32
+            stage = 4;
         } else if (level >= 17) {
-            stage = 3;      // Stage 3: Levels 17-24
+            stage = 3;
         } else if (level >= 9) {
-            stage = 2;      // Stage 2: Levels 9-16
+            stage = 2;
         }
         
         // Update the text
