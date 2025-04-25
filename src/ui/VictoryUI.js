@@ -147,6 +147,8 @@ export default class VictoryUI {
         this.experienceText.setText(`Experience: +${this.rewards.experience}`);
         this.coinsText.setText(`Coins: +${this.rewards.coins}`);
         
+        console.log(`VictoryUI: Showing Level ${level} Completed!`);
+        
         // Update item slots
         for (let i = 0; i < this.itemSlots.length; i++) {
             const slot = this.itemSlots[i];
