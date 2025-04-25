@@ -347,9 +347,11 @@ export default class SpawnSystem {
         }
         
         // Check if all waves are complete
+        console.log(`[SpawnSystem] Checking if level is complete: wave ${this.currentWave} of ${this.totalWaves}`);
         if (this.currentWave >= this.totalWaves) {
             // Level complete, prepare for next level
-            this.scene.time.delayedCall(5000, () => {
+            console.log(`[SpawnSystem] All ${this.totalWaves} waves completed! Moving to level completion.`);
+            this.scene.time.delayedCall(3000, () => {
                 this.completeLevel();
             });
         } else {
@@ -372,8 +374,13 @@ export default class SpawnSystem {
      * Complete the current level
      */
     completeLevel() {
+        // Before incrementing, store the completed level number
+        const completedLevel = this.currentLevel;
+        
         // Increment level
         this.currentLevel++;
+        
+        console.log(`[SpawnSystem] LEVEL PROGRESSION: Completed level ${completedLevel}, incremented to ${this.currentLevel}`);
         
         // Update level in UI
         if (this.scene.updateLevel) {
@@ -389,11 +396,11 @@ export default class SpawnSystem {
             this.scene.audioManager.playVictorySound();
         }
         
-        // Show level complete notification with animation
+        // Show level complete notification with animation - use completedLevel instead of currentLevel-1
         const levelText = this.scene.add.text(
             this.scene.cameras.main.worldView.centerX,
             this.scene.cameras.main.worldView.centerY,
-            `LEVEL ${this.currentLevel - 1} COMPLETE!`,
+            `LEVEL ${completedLevel} COMPLETE!`,
             {
                 fontSize: '36px',
                 fontFamily: 'Arial',
@@ -405,6 +412,9 @@ export default class SpawnSystem {
         ).setOrigin(0.5).setScrollFactor(0).setDepth(100)
          .setAlpha(0)
          .setScale(0.5);
+        
+        // Log the level completion for debugging
+        console.log(`[SpawnSystem] Showing level completion: LEVEL ${completedLevel} COMPLETE!`);
         
         // Zoom and fade animation
         this.scene.tweens.add({
