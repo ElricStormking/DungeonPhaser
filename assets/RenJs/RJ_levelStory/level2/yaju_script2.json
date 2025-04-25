@@ -1,0 +1,72 @@
+{
+  "scripts": {
+    "yaju_script2": {
+      "actions": [
+        {
+          "type": "scene",
+          "name": "Courtyard",
+          "transition": "fade",
+          "transitionDuration": 500
+        },
+        {
+          "type": "music",
+          "action": "play",
+          "name": "Pixelated Farewell",
+          "loop": true,
+          "volume": 1.0
+        },
+        {
+          "type": "text",
+          "content": "在樓頂曬太陽時，露西請凱莎喝了冰紅茶。"
+        },
+        {
+          "type": "show",
+          "character": "Jenna",
+          "look": "default",
+          "position": "left",
+          "transition": "fadeIn",
+          "transitionDuration": 300
+        },
+        {
+          "type": "say",
+          "character": "Jenna",
+          "text": "只有綠茶可以嗎？"
+        },
+        {
+          "type": "show",
+          "character": "Sandy",
+          "look": "default",
+          "position": "right",
+          "transition": "fadeIn",
+          "transitionDuration": 300
+        },
+        {
+          "type": "say",
+          "character": "Sandy",
+          "text": "啊啊啊啊啊啊啊啊啊—————！！！"
+        },
+        {
+          "type": "music",
+          "action": "stop"
+        },
+        {
+          "type": "music",
+          "action": "stop",
+          "fadeOut": 1000
+        },
+        {
+          "type": "hide",
+          "transition": "fadeOut",
+          "transitionDuration": 300
+        },
+        {
+          "type": "scene",
+          "name": "EndScene"
+        },
+        {
+          "type": "endGame"
+        }
+      ]
+    }
+  }
+}

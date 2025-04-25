@@ -1,0 +1,59 @@
+{
+  "scenes": {
+    "yaju_scene6": {
+      "actions": [
+        {
+          "type": "scene",
+          "name": "Courtyard",
+          "transition": "fade"
+        },
+        {
+          "type": "music",
+          "action": "play",
+          "name": "Pixelated Farewell"
+        },
+        {
+          "type": "text",
+          "content": "在樓頂曬太陽時，露西請凱莎喝了冰紅茶。"
+        },
+        {
+          "type": "show",
+          "character": "Lucy",
+          "transition": "fadeIn"
+        },
+        {
+          "type": "say",
+          "character": "Lucy",
+          "content": "只有紅茶可以嗎？"
+        },
+        {
+          "type": "show",
+          "character": "Keisha",
+          "transition": "fadeIn"
+        },
+        {
+          "type": "say",
+          "character": "Keisha",
+          "content": "哼！哼！哼啊啊啊啊啊啊啊啊啊—————！！！"
+        },
+        {
+          "type": "music",
+          "action": "stop"
+        },
+        {
+          "type": "sound",
+          "action": "stop"
+        },
+        {
+          "type": "hideAll",
+          "transition": "fadeOut"
+        },
+        {
+          "type": "scene",
+          "name": "EndScene",
+          "transition": null
+        }
+      ]
+    }
+  }
+}

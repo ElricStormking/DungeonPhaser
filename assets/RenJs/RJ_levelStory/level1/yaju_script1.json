@@ -1,0 +1,172 @@
+{
+  "scripts": {
+    "yaju_script1": {
+      "actions": [
+        {
+          "type": "scene",
+          "name": "Forest",
+          "transition": "fade",
+          "transitionDuration": 500
+        },
+        {
+          "type": "music",
+          "action": "play",
+          "name": "stage1",
+          "loop": true,
+          "volume": 0.8
+        },
+        {
+          "type": "text",
+          "content": "在森林的深處，米婭遇到了正在找草藥的瑟米亞。"
+        },
+        {
+          "type": "show",
+          "character": "Mia",
+          "look": "default",
+          "position": "left",
+          "transition": "fadeIn",
+          "transitionDuration": 300
+        },
+        {
+          "type": "say",
+          "character": "Mia",
+          "text": "瑟米亞，你在這裡做什麼？"
+        },
+        {
+          "type": "show",
+          "character": "Semia",
+          "look": "default",
+          "position": "right",
+          "transition": "fadeIn",
+          "transitionDuration": 300
+        },
+        {
+          "type": "say",
+          "character": "Semia",
+          "text": "我在找一種特殊的草藥，可以治療最近村裡流行的感冒。"
+        },
+        {
+          "type": "say",
+          "character": "Mia",
+          "text": "真巧，我也正好在找草藥。村裡的老人說這附近有珍貴的藥材。"
+        },
+        {
+          "type": "say",
+          "character": "Semia",
+          "text": "是的，但這裡最近出現了一些奇怪的生物，我一個人有點害怕。"
+        },
+        {
+          "type": "say",
+          "character": "Mia",
+          "text": "那我們一起找吧，兩個人總比一個人安全。"
+        },
+        {
+          "type": "hide",
+          "character": "Mia",
+          "transition": "fadeOut",
+          "transitionDuration": 300
+        },
+        {
+          "type": "hide",
+          "character": "Semia",
+          "transition": "fadeOut",
+          "transitionDuration": 300
+        },
+        {
+          "type": "scene",
+          "name": "Forest",
+          "transition": "fade",
+          "transitionDuration": 500
+        },
+        {
+          "type": "text",
+          "content": "幾個小時後，他們在森林深處找到了草藥，但同時也發現了一些詭異的足跡。"
+        },
+        {
+          "type": "show",
+          "character": "Mia",
+          "look": "default",
+          "position": "left",
+          "transition": "fadeIn",
+          "transitionDuration": 300
+        },
+        {
+          "type": "show",
+          "character": "Semia",
+          "look": "default",
+          "position": "right",
+          "transition": "fadeIn",
+          "transitionDuration": 300
+        },
+        {
+          "type": "say",
+          "character": "Mia",
+          "text": "你看這些足跡，似乎不是普通動物留下的..."
+        },
+        {
+          "type": "say",
+          "character": "Semia",
+          "text": "村裡的傳說說這片森林裡有守護者，保護著這些珍貴的藥材。"
+        },
+        {
+          "type": "say",
+          "character": "Mia",
+          "text": "我們最好趕快回去，天快黑了。"
+        },
+        {
+          "type": "text",
+          "content": "就在這時，他們聽到了樹叢中傳來的奇怪聲音。"
+        },
+        {
+          "type": "show",
+          "character": "Keeper1",
+          "look": "default",
+          "position": "center",
+          "transition": "fadeIn",
+          "transitionDuration": 500
+        },
+        {
+          "type": "say",
+          "character": "Keeper1",
+          "text": "你們在尋找的草藥擁有強大的力量，不是隨便什麼人都能採集的。"
+        },
+        {
+          "type": "say",
+          "character": "Semia",
+          "text": "我們只是為了治病，不是為了個人利益。"
+        },
+        {
+          "type": "say",
+          "character": "Keeper1",
+          "text": "那就證明你們的實力吧。只有真正有資格的人才能獲得這些草藥。"
+        },
+        {
+          "type": "say",
+          "character": "Mia",
+          "text": "我們接受挑戰！"
+        },
+        {
+          "type": "text",
+          "content": "守夜人消失在霧中，米婭和瑟米亞知道他們必須通過某種考驗才能獲得草藥。"
+        },
+        {
+          "type": "hide",
+          "transition": "fadeOut",
+          "transitionDuration": 800
+        },
+        {
+          "type": "music",
+          "action": "stop",
+          "fadeOut": 1000
+        },
+        {
+          "type": "scene",
+          "name": "EndScene"
+        },
+        {
+          "type": "endGame"
+        }
+      ]
+    }
+  }
+}
