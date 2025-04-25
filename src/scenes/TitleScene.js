@@ -73,7 +73,7 @@ export default class TitleScene extends Phaser.Scene {
             });
         });
         
-        // Play button action - start the game
+        // Play button action - show intro story first, then character selection
         playButton.on('pointerdown', () => {
             // Play audio if not initialized
             if (this.audioManager && !this.audioInitialized) {
@@ -86,8 +86,8 @@ export default class TitleScene extends Phaser.Scene {
                 }
             }
             
-            // Show character selection
-            this.showCharacterSelection();
+            // Show intro story instead of character selection directly
+            this.showIntroStory();
         });
         
         // Other button actions (placeholders)
@@ -130,8 +130,13 @@ export default class TitleScene extends Phaser.Scene {
         console.log('TitleScene create completed');
     }
     
-    showCharacterSelection() {
-        // Hide main menu elements (we'll create a transition)
+    /**
+     * Show the intro story (level0) before character selection
+     */
+    showIntroStory() {
+        console.log('🔹 Showing intro story before character selection');
+        
+        // Hide main menu elements (transition)
         this.children.list.forEach(child => {
             this.tweens.add({
                 targets: child,
@@ -145,174 +150,208 @@ export default class TitleScene extends Phaser.Scene {
         
         // Wait for fade out to complete
         this.time.delayedCall(300, () => {
-            // Background remains visible
-            const background = this.add.image(963, 540, 'background').setAlpha(0);
+            // Pause current scene
+            this.scene.pause();
             
-            // Fade in background
-            this.tweens.add({
-                targets: background,
-                alpha: 1,
-                duration: 300
+            // First stop any existing StoryScene to ensure a clean state
+            if (this.scene.get('StoryScene')) {
+                console.log('🔹 Stopping existing StoryScene to ensure clean state');
+                this.scene.stop('StoryScene');
+            }
+            
+            // Launch story scene with level0
+            console.log('🔹 Launching NEW StoryScene with level 0');
+            this.scene.launch('StoryScene', { 
+                level: 0, // Explicitly use level 0 for intro story
+                onComplete: () => {
+                    console.log('✅ Intro story (level0) completed, showing character selection');
+                    // Resume the TitleScene
+                    this.scene.resume();
+                    
+                    // Show character selection after story completes
+                    this.showCharacterSelection();
+                }
             });
+        });
+    }
+    
+    showCharacterSelection() {
+        // Clear any previous UI elements
+        this.children.list.forEach(child => {
+            child.destroy();
+        });
+        
+        // Background remains visible
+        const background = this.add.image(963, 540, 'background').setAlpha(0);
+        
+        // Fade in background
+        this.tweens.add({
+            targets: background,
+            alpha: 1,
+            duration: 300
+        });
+        
+        // Add logo to character selection screen
+        const logo = this.add.image(GAME_WIDTH / 2, 120, 'LOGO3')
+            .setScale(0.3)
+            .setAlpha(0);
             
-            // Add logo to character selection screen
-            const logo = this.add.image(GAME_WIDTH / 2, 120, 'LOGO3')
-                .setScale(0.3)
-                .setAlpha(0);
-                
-            // Add selection subtitle
-            const selectionTitle = this.add.text(GAME_WIDTH / 2, 200, 'Choose Your Character', {
-                fontSize: '28px', 
-                fontFamily: 'Arial', 
-                fill: '#FFFFFF',
-                stroke: '#000000', 
-                strokeThickness: 3
-            }).setOrigin(0.5).setAlpha(0);
+        // Add selection subtitle
+        const selectionTitle = this.add.text(GAME_WIDTH / 2, 200, 'Choose Your Character', {
+            fontSize: '28px', 
+            fontFamily: 'Arial', 
+            fill: '#FFFFFF',
+            stroke: '#000000', 
+            strokeThickness: 3
+        }).setOrigin(0.5).setAlpha(0);
+        
+        // Fade in title and logo
+        this.tweens.add({
+            targets: [logo, selectionTitle],
+            alpha: 1,
+            duration: 300
+        });
+        
+        // Define characters directly here or import from heroClasses.js
+        const characters = [
+            { name: 'Warrior', key: 'warrior', color: 0xFF0000, desc: 'Sword sweep: damages nearby enemies' }, 
+            { name: 'Archer', key: 'archer', color: 0x00FF00, desc: 'Multi-shot: fires arrows in all directions' },
+            { name: 'Mage', key: 'mage', color: 0x00FFFF, desc: 'Frost Nova: freezes nearby enemies' } 
+        ];
+        
+        // Character buttons
+        const charButtons = [];
+        const charTexts = [];
+        
+        characters.forEach((char, index) => {
+            const x = GAME_WIDTH / 2;
+            const y = 300 + index * 120;
             
-            // Fade in title and logo
-            this.tweens.add({
-                targets: [logo, selectionTitle],
-                alpha: 1,
-                duration: 300
-            });
+            // Button background using UI assets
+            const button = this.add.image(x, y, 'button1_01').setOrigin(0.5).setAlpha(0);
             
-            // Define characters directly here or import from heroClasses.js
-            const characters = [
-                { name: 'Warrior', key: 'warrior', color: 0xFF0000, desc: 'Sword sweep: damages nearby enemies' }, 
-                { name: 'Archer', key: 'archer', color: 0x00FF00, desc: 'Multi-shot: fires arrows in all directions' },
-                { name: 'Mage', key: 'mage', color: 0x00FFFF, desc: 'Frost Nova: freezes nearby enemies' } 
-            ];
+            // Character icon
+            const icon = this.add.rectangle(x - 120, y, 40, 40, char.color).setOrigin(0.5).setAlpha(0);
             
-            // Character buttons
-            const charButtons = [];
-            const charTexts = [];
-            
-            characters.forEach((char, index) => {
-                const x = GAME_WIDTH / 2;
-                const y = 300 + index * 120;
-                
-                // Button background using UI assets
-                const button = this.add.image(x, y, 'button1_01').setOrigin(0.5).setAlpha(0);
-                
-                // Character icon
-                const icon = this.add.rectangle(x - 120, y, 40, 40, char.color).setOrigin(0.5).setAlpha(0);
-                
-                // Character name and description
-                const nameText = this.add.text(x, y - 15, char.name, { 
-                    fontSize: '24px', 
-                    fontFamily: 'Arial', 
-                    fill: '#FFFFFF',
-                    stroke: '#000000',
-                    strokeThickness: 3
-                }).setOrigin(0.5, 0.5).setAlpha(0);
-                
-                const descText = this.add.text(x, y + 15, char.desc, { 
-                    fontSize: '14px', 
-                    fontFamily: 'Arial', 
-                    fill: '#CCCCCC',
-                    stroke: '#000000',
-                    strokeThickness: 2
-                }).setOrigin(0.5, 0.5).setAlpha(0);
-                
-                // Add to arrays for animation
-                charButtons.push(button);
-                charTexts.push(icon, nameText, descText);
-                
-                // Make interactive
-                button.setInteractive({ useHandCursor: true })
-                    .on('pointerover', () => button.setScale(1.05))
-                    .on('pointerout', () => button.setScale(1.0))
-                    .on('pointerdown', () => {
-                        console.log('Character selected:', char.name);
-                        
-                        // Play a selection sound
-                        if (this.audioManager) {
-                            try {
-                                this.audioManager.playSFX('pickup');
-                            } catch (error) {
-                                console.warn('Failed to play pickup sound:', error);
-                            }
-                        }
-                        
-                        // Stop title music with immediate stop (no fade)
-                        if (this.audioManager) {
-                            try {
-                                console.log('Stopping title music');
-                                this.audioManager.stopMusic(0); // Immediate stop with no fade
-                            } catch (error) {
-                                console.warn('Failed to stop title music:', error);
-                            }
-                        }
-                        
-                        // Fade out everything
-                        this.tweens.add({
-                            targets: [...this.children.list],
-                            alpha: 0,
-                            duration: 300,
-                            onComplete: () => {
-                                // Pass the selected hero key to the next scene
-                                this.scene.start('GameScene', { selectedHeroKey: char.key }); 
-                            }
-                        });
-                    });
-            });
-            
-            // Fade in buttons sequentially
-            this.tweens.add({
-                targets: charButtons,
-                alpha: 1,
-                duration: 300,
-                delay: this.tweens.stagger(100)
-            });
-            
-            // Fade in text elements
-            this.tweens.add({
-                targets: charTexts,
-                alpha: 1,
-                duration: 300,
-                delay: this.tweens.stagger(50)
-            });
-            
-            // Back button
-            const backButton = this.add.image(427, 700, 'button4_01')
-                .setInteractive({ useHandCursor: true })
-                .setOrigin(0.5)
-                .setAlpha(0);
-                
-            this.add.text(427, 700, 'BACK', { 
+            // Character name and description
+            const nameText = this.add.text(x, y - 15, char.name, { 
                 fontSize: '24px', 
                 fontFamily: 'Arial', 
                 fill: '#FFFFFF',
                 stroke: '#000000',
                 strokeThickness: 3
-            }).setOrigin(0.5).setAlpha(0);
+            }).setOrigin(0.5, 0.5).setAlpha(0);
             
-            // Fade in back button
-            this.tweens.add({
-                targets: [backButton, backButton.text],
-                alpha: 1,
-                duration: 300,
-                delay: 500
-            });
+            const descText = this.add.text(x, y + 15, char.desc, { 
+                fontSize: '14px', 
+                fontFamily: 'Arial', 
+                fill: '#CCCCCC',
+                stroke: '#000000',
+                strokeThickness: 2
+            }).setOrigin(0.5, 0.5).setAlpha(0);
             
-            // Back button hover effects
-            backButton.on('pointerover', () => backButton.setScale(1.05));
-            backButton.on('pointerout', () => backButton.setScale(1.0));
+            // Add to arrays for animation
+            charButtons.push(button);
+            charTexts.push(icon, nameText, descText);
             
-            // Back button action
-            backButton.on('pointerdown', () => {
-                // Play a selection sound
-                if (this.audioManager) {
-                    try {
-                        this.audioManager.playSFX('pickup');
-                    } catch (error) {
-                        console.warn('Failed to play pickup sound:', error);
+            // Make interactive
+            button.setInteractive({ useHandCursor: true })
+                .on('pointerover', () => button.setScale(1.05))
+                .on('pointerout', () => button.setScale(1.0))
+                .on('pointerdown', () => {
+                    console.log('Character selected:', char.name);
+                    
+                    // Play a selection sound
+                    if (this.audioManager) {
+                        try {
+                            this.audioManager.playSFX('pickup');
+                        } catch (error) {
+                            console.warn('Failed to play pickup sound:', error);
+                        }
                     }
+                    
+                    // Stop title music with immediate stop (no fade)
+                    if (this.audioManager) {
+                        try {
+                            console.log('Stopping title music');
+                            this.audioManager.stopMusic(0); // Immediate stop with no fade
+                        } catch (error) {
+                            console.warn('Failed to stop title music:', error);
+                        }
+                    }
+                    
+                    // Fade out everything
+                    this.tweens.add({
+                        targets: [...this.children.list],
+                        alpha: 0,
+                        duration: 300,
+                        onComplete: () => {
+                            // Start the GameScene directly with the selected hero
+                            // Don't show level0 story again since we already showed it
+                            this.scene.start('GameScene', { 
+                                selectedHeroKey: char.key,
+                                skipIntroStory: true 
+                            }); 
+                        }
+                    });
+                });
+        });
+        
+        // Fade in buttons sequentially
+        this.tweens.add({
+            targets: charButtons,
+            alpha: 1,
+            duration: 300,
+            delay: this.tweens.stagger(100)
+        });
+        
+        // Fade in text elements
+        this.tweens.add({
+            targets: charTexts,
+            alpha: 1,
+            duration: 300,
+            delay: this.tweens.stagger(50)
+        });
+        
+        // Back button
+        const backButton = this.add.image(427, 700, 'button4_01')
+            .setInteractive({ useHandCursor: true })
+            .setOrigin(0.5)
+            .setAlpha(0);
+            
+        this.add.text(427, 700, 'BACK', { 
+            fontSize: '24px', 
+            fontFamily: 'Arial', 
+            fill: '#FFFFFF',
+            stroke: '#000000',
+            strokeThickness: 3
+        }).setOrigin(0.5).setAlpha(0);
+        
+        // Fade in back button
+        this.tweens.add({
+            targets: [backButton, backButton.text],
+            alpha: 1,
+            duration: 300,
+            delay: 500
+        });
+        
+        // Back button hover effects
+        backButton.on('pointerover', () => backButton.setScale(1.05));
+        backButton.on('pointerout', () => backButton.setScale(1.0));
+        
+        // Back button action
+        backButton.on('pointerdown', () => {
+            // Play a selection sound
+            if (this.audioManager) {
+                try {
+                    this.audioManager.playSFX('pickup');
+                } catch (error) {
+                    console.warn('Failed to play pickup sound:', error);
                 }
-                
-                // Restart the scene
-                this.scene.restart();
-            });
+            }
+            
+            // Restart the scene
+            this.scene.restart();
         });
     }
 } 

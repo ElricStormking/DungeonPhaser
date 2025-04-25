@@ -67,6 +67,9 @@ export default class GameScene extends Phaser.Scene {
         // Get selected hero from TitleScene
         this.selectedHeroKey = data.selectedHeroKey || 'warrior'; 
         
+        // Check if we should skip intro story (already shown in TitleScene)
+        this.skipIntroStory = data.skipIntroStory || false;
+        
         // Reset state variables that persist across scene restarts
         this.resetGameState();
     }
@@ -325,19 +328,23 @@ export default class GameScene extends Phaser.Scene {
             this.startLevelMusic();
         });
         
-        // Start level 1 with story or directly
+        // Decide whether to show intro stories or start gameplay directly
         this.time.delayedCall(500, () => {
-            if (this.showLevelStory(this.currentLevel)) {
-                console.log('Starting game with intro story');
-            } else {
-                console.log('Starting game directly (no intro story found)');
-                // Initial State - create first pickup
-                this.spawnSystem.spawnPickup();
-                
-                // Start level music
-            if (this.audioManager && this.audioManager.initialized) {
-                this.startLevelMusic();
+            if (this.skipIntroStory) {
+                console.log('🚀 Game starting: Skipping intro story (already shown)');
+                // Only show level 1 story if needed and start gameplay
+                if (this.showLevelStory(1)) {
+                    // If a story is shown, it will handle the transition to gameplay
+                    console.log('Showing level 1 story only');
+                } else {
+                    // If no story shown, start gameplay directly
+                    console.log('No level 1 story found, starting gameplay directly');
+                    this.startActualGameplay();
                 }
+            } else {
+                console.log('🚀 Game starting: First showing level0 story, then continuing to level1');
+                // Show both level0 and level1 stories in sequence
+                this.showInitialStories();
             }
         });
         
@@ -913,7 +920,11 @@ export default class GameScene extends Phaser.Scene {
         // Only show if we're not in game over state
         if (this.gameOver) return;
         
-        console.log(`Showing victory UI for level ${this.currentLevel}`);
+        // The current level has already been incremented at this point,
+        // so we need to show the completed level (current - 1)
+        const completedLevel = this.currentLevel - 1;
+        
+        console.log(`Showing victory UI for completed level ${completedLevel}`);
         
         // Fully pause the game when showing Victory UI
         this.gameActive = false;
@@ -925,14 +936,14 @@ export default class GameScene extends Phaser.Scene {
         }
         
         // Calculate rewards based on level, player performance, etc.
-        const experienceReward = 100 * this.currentLevel;
-        const coinReward = 50 * this.currentLevel;
+        const experienceReward = 100 * completedLevel;
+        const coinReward = 50 * completedLevel;
         
         // Example item rewards (for demonstration)
         const itemRewards = [];
         
         // Give different items based on level
-        if (this.currentLevel % 3 === 0) {
+        if (completedLevel % 3 === 0) {
             // Every 3rd level gives a potion
             itemRewards.push({
                 key: 'item_potion',
@@ -941,7 +952,7 @@ export default class GameScene extends Phaser.Scene {
             });
         }
         
-        if (this.currentLevel % 5 === 0) {
+        if (completedLevel % 5 === 0) {
             // Every 5th level gives a weapon
             itemRewards.push({
                 key: 'item_weapon',
@@ -950,7 +961,7 @@ export default class GameScene extends Phaser.Scene {
             });
         }
         
-        if (this.currentLevel % 8 === 0) {
+        if (completedLevel % 8 === 0) {
             // Every 8th level (boss levels) gives armor
             itemRewards.push({
                 key: 'item_armor',
@@ -964,7 +975,7 @@ export default class GameScene extends Phaser.Scene {
             experience: experienceReward,
             coins: coinReward,
             items: itemRewards
-        }, this.currentLevel);
+        }, completedLevel);
         
         // Apply the experience to the player
         if (this.levelSystem) {
@@ -976,10 +987,7 @@ export default class GameScene extends Phaser.Scene {
      * Continue to the next level after victory
      */
     continueToNextLevel() {
-        console.log('Continuing to next level');
-        
-        // Calculate the next level number
-        const nextLevel = this.currentLevel + 1;
+        console.log(`Continuing from completed level ${this.currentLevel - 1} to level ${this.currentLevel}`);
         
         // Hide the UI first
         if (this.victoryUI && this.victoryUI.visible) {
@@ -987,9 +995,11 @@ export default class GameScene extends Phaser.Scene {
         }
         
         // Check if there's a story to show before the next level
-        if (this.showLevelStory(nextLevel)) {
+        // We use the current level rather than currentLevel+1 because the level
+        // has already been incremented in SpawnSystem.completeLevel
+        if (this.showLevelStory(this.currentLevel)) {
             // The showLevelStory method will handle the transition to the next level when the story ends
-            console.log(`Showing story for level ${nextLevel} before starting gameplay`);
+            console.log(`Showing story for level ${this.currentLevel} before starting gameplay`);
             return;
         }
         
@@ -1003,7 +1013,66 @@ export default class GameScene extends Phaser.Scene {
      * @returns {boolean} - Whether a story was shown
      */
     showLevelStory(level) {
-        console.log(`Checking for story content for level ${level}...`);
+        console.log(`⭐ Checking for story content for level ${level}...`);
+        
+        // Skip level0 story if we've already shown it in TitleScene
+        if (level === 0 && this.skipIntroStory) {
+            console.log('Skipping level0 story (already shown in TitleScene)');
+            return false;
+        }
+        
+        // Add flag to track if we're coming from level0 story
+        if (this.justCompletedLevel0 && level === 1) {
+            console.log('Just completed level0 story, skipping level1 story for now');
+            this.justCompletedLevel0 = false;
+            return false;
+        }
+        
+        // Special handling for level 1 - show intro story (level0) first
+        // But only if we haven't already shown it in TitleScene
+        if (level === 1 && !this.skipIntroStory) {
+            console.log('🔹 Level 1 detected - attempting to show level0 intro story');
+            
+            // Store current level info to resume after story
+            this.pendingLevel = level;
+            
+            // Launch story scene with level0
+            try {
+                console.log('🔹 Pausing GameScene to show level0 story');
+                // Pause current game
+                this.scene.pause();
+                
+                // Debug: Check if StoryScene exists
+                const storySceneKey = 'StoryScene';
+                if (!this.scene.get(storySceneKey)) {
+                    console.error('❌ StoryScene does not exist in the scene manager!');
+                    return false;
+                }
+                
+                // First stop any existing StoryScene to ensure a clean state
+                console.log('🔹 Stopping any existing StoryScene to ensure clean state');
+                this.scene.stop(storySceneKey);
+                
+                console.log('🔹 Launching fresh StoryScene with level 0');
+                // Launch story scene with level0
+                this.scene.launch(storySceneKey, { 
+                    level: 0, // Use level 0 for intro story
+                    onComplete: () => {
+                        console.log('✅ Intro story (level0) completed, starting level 1 gameplay');
+                        // Set flag to indicate we just completed level0 story
+                        this.justCompletedLevel0 = true;
+                        this.scene.resume();
+                        this.startNextLevel();
+                    }
+                });
+                
+                return true;
+            } catch (error) {
+                console.error('❌ Failed to show level0 intro story:', error);
+                console.error('Error stack:', error.stack);
+                // Fall back to regular level 1 story if level0 fails
+            }
+        }
         
         // Store current level info to resume after story
         this.pendingLevel = level;
@@ -1013,7 +1082,12 @@ export default class GameScene extends Phaser.Scene {
             // Pause current game
             this.scene.pause();
             
+            // First stop any existing StoryScene to ensure a clean state
+            console.log('🔹 Stopping any existing StoryScene to ensure clean state');
+            this.scene.stop('StoryScene');
+            
             // Launch story scene
+            console.log(`🔹 Launching fresh StoryScene with level ${level}`);
             this.scene.launch('StoryScene', { 
                 level: level,
                 onComplete: () => {
@@ -1040,11 +1114,17 @@ export default class GameScene extends Phaser.Scene {
         
         // Set the level number (from pending level or increment current)
         if (this.pendingLevel) {
+            // Use the pending level directly without incrementing
             this.currentLevel = this.pendingLevel;
             this.pendingLevel = null;
-        } else {
-            this.currentLevel++;
+            console.log(`Using pending level: ${this.currentLevel}`);
         }
+        // Don't increment currentLevel here as it's already been incremented in SpawnSystem.completeLevel
+        // else {
+        //     this.currentLevel++;
+        // }
+        
+        console.log(`Starting gameplay for level: ${this.currentLevel}`);
         
         // Update background and music for new level
         this.updateBackgroundForLevel(this.currentLevel);
@@ -1069,7 +1149,7 @@ export default class GameScene extends Phaser.Scene {
             } catch (error) {
                 console.error('Error starting new level:', error);
                 // Fallback approach if error occurs
-            this.time.delayedCall(500, () => {
+                this.time.delayedCall(500, () => {
                     console.log('Fallback: Starting new level with delay');
                     this.spawnSystem.startNewLevel(this.currentLevel);
                 });
@@ -1166,6 +1246,129 @@ export default class GameScene extends Phaser.Scene {
         if (this.resourceManager) {
             console.log('Cleaning up resource manager pools');
             this.resourceManager.cleanup();
+        }
+    }
+
+    /**
+     * Show initial stories in the correct sequence
+     * First level0, then level1
+     */
+    showInitialStories() {
+        // Skip if we've already shown the intro story in TitleScene
+        if (this.skipIntroStory) {
+            console.log('🔹 Skipping intro stories (already shown in TitleScene)');
+            this.startActualGameplay();
+            return;
+        }
+        
+        console.log('🔹 Starting story sequence: level0 -> level1');
+        
+        // First show level0 (intro)
+        // Pause current game
+        this.scene.pause();
+        
+        // First stop any existing StoryScene to ensure a clean state
+        console.log('🔹 Stopping any existing StoryScene to ensure clean state');
+        this.scene.stop('StoryScene');
+        
+        // Launch story scene with level0 explicitly
+        console.log('🔹 Launching fresh StoryScene with level 0');
+        this.scene.launch('StoryScene', { 
+            level: 0, // Explicitly use level 0
+            onComplete: () => {
+                console.log('✅ Level 0 story completed, will now show level1 story');
+                
+                // Resume momentarily to launch level1 story
+                this.scene.resume();
+                
+                // Wait a moment before showing level1 story
+                this.time.delayedCall(100, () => {
+                    // Now show level1 story
+                    this.scene.pause();
+                    
+                    // Stop level0 StoryScene
+                    console.log('🔹 Stopping level0 StoryScene');
+                    this.scene.stop('StoryScene');
+                    
+                    console.log('🔹 Launching fresh StoryScene with level 1');
+                    this.scene.launch('StoryScene', { 
+                        level: 1, // Now show level 1
+                        onComplete: () => {
+                            console.log('✅ Level 1 story completed, resuming gameplay');
+                            this.scene.resume();
+                            // Start actual gameplay
+                            this.startActualGameplay();
+                        }
+                    });
+                });
+            }
+        });
+    }
+    
+    /**
+     * Force show level0 story at any time
+     * This can be called from developer console for testing
+     */
+    forceShowLevel0Story() {
+        console.log('🔸 FORCED: Showing level0 story');
+        
+        // Pause current game
+        this.scene.pause();
+        
+        // First stop any existing StoryScene to ensure a clean state
+        console.log('🔹 Stopping any existing StoryScene to ensure clean state');
+        this.scene.stop('StoryScene');
+        
+        // Launch story scene with level0 explicitly
+        console.log('🔹 Launching fresh StoryScene with level 0');
+        this.scene.launch('StoryScene', { 
+            level: 0, // Explicitly use level 0 for intro story
+            onComplete: () => {
+                console.log('✅ Level 0 story completed (forced mode)');
+                // Resume the game scene
+                this.scene.resume();
+            }
+        });
+    }
+    
+    /**
+     * Force show level1 story at any time
+     * This can be called from developer console for testing
+     */
+    forceShowLevel1Story() {
+        console.log('🔸 FORCED: Showing level1 story');
+        
+        // Pause current game
+        this.scene.pause();
+        
+        // First stop any existing StoryScene to ensure a clean state
+        console.log('🔹 Stopping any existing StoryScene to ensure clean state');
+        this.scene.stop('StoryScene');
+        
+        // Launch story scene with level1 explicitly
+        console.log('🔹 Launching fresh StoryScene with level 1');
+        this.scene.launch('StoryScene', { 
+            level: 1, // Explicitly use level 1 for story
+            onComplete: () => {
+                console.log('✅ Level 1 story completed (forced mode)');
+                // Resume the game scene
+                this.scene.resume();
+            }
+        });
+    }
+    
+    /**
+     * Start actual gameplay after all intro stories
+     */
+    startActualGameplay() {
+        console.log('🎮 Starting actual gameplay');
+        
+        // Create first pickup
+        this.spawnSystem.spawnPickup();
+        
+        // Start level music
+        if (this.audioManager && this.audioManager.initialized) {
+            this.startLevelMusic();
         }
     }
 } 
