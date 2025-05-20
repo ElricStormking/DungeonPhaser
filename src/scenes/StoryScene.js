@@ -210,110 +210,99 @@ export default class StoryScene extends Phaser.Scene {
             // Parse story script with proper error handling
             let storyScript = null;
             let rawStoryScript = null;
-            
-            // Use the specific key for this level
-            const scriptKey = `story-script-level-${this.level}`;
-            
-            // Simplified script loading for all levels
-            try {
-                console.log(`🔍 Attempting to get script for LEVEL ${this.level} using key "${scriptKey}"`);
-                rawStoryScript = this.cache.json.get(scriptKey);
-                console.log(`✅ Successfully loaded script for LEVEL ${this.level}`);
-            } catch (error) {
-                console.error(`❌ Failed to load script for LEVEL ${this.level}:`, error);
-                
-                // Create emergency script to prevent crash
-                console.log('🔄 Creating empty script to prevent crash');
-                rawStoryScript = {
-                    scripts: {
-                        [`yaju_script${this.level}`]: {
-                            actions: [
-                                {
-                                    type: "text",
-                                    content: `Error loading story script for level ${this.level}. Please restart the game.`
-                                },
-                                {
-                                    type: "endGame"
-                                }
-                            ]
+            const originalLevel = this.level;
+            let effectiveLevel = originalLevel; // This will be the level whose script is actually used
+
+            const primaryScriptKey = `story-script-level-${originalLevel}`;
+            console.log(`🔍 Attempting to get script for original LEVEL ${originalLevel} using key "${primaryScriptKey}"`);
+            rawStoryScript = this.cache.json.get(primaryScriptKey);
+
+            if (!rawStoryScript) {
+                console.warn(`☢️ Story script for LEVEL ${originalLevel} (key: ${primaryScriptKey}) not found in cache. Attempting fallback to LEVEL 1.`);
+                effectiveLevel = 1; // Fallback to level 1
+                const fallbackScriptKey = `story-script-level-${effectiveLevel}`;
+                rawStoryScript = this.cache.json.get(fallbackScriptKey);
+
+                if (!rawStoryScript) {
+                    console.error(`❌ Fallback script for LEVEL 1 (key: ${fallbackScriptKey}) also not found. Using emergency script.`);
+                    const errorMsg = `Story for Level ${originalLevel} is missing. Fallback to Level 1 story also failed.`;
+                    storyScript = {
+                        actions: [
+                            { type: "text", content: errorMsg },
+                            { type: "endGame" }
+                        ]
+                    };
+                } else {
+                    console.log(`✅ Successfully loaded FALLBACK script for LEVEL 1 (key: ${fallbackScriptKey}) from cache. Will use this for Level ${originalLevel}.`);
+                }
+            } else {
+                console.log(`✅ Successfully loaded script for original LEVEL ${originalLevel} (key: ${primaryScriptKey}) from cache.`);
+            }
+
+            // If storyScript is not yet set (i.e., not an emergency script from above) AND rawStoryScript exists (either original or fallback)
+            if (!storyScript && rawStoryScript) {
+                console.log(`Attempting to parse rawStoryScript for effective LEVEL ${effectiveLevel}:`, rawStoryScript);
+                const scriptAccessKey = `yaju_script${effectiveLevel}`;
+
+                if (rawStoryScript.scripts && rawStoryScript.scripts[scriptAccessKey]) {
+                    storyScript = rawStoryScript.scripts[scriptAccessKey];
+                    console.log(`SUCCESS: Parsed from rawStoryScript.scripts.${scriptAccessKey}`);
+                } else if (rawStoryScript.scenes && rawStoryScript.scenes.yaju_scene) {
+                    storyScript = rawStoryScript.scenes.yaju_scene;
+                    console.log(`SUCCESS: Parsed from rawStoryScript.scenes.yaju_scene (used for effective level ${effectiveLevel})`);
+                } else if (rawStoryScript[scriptAccessKey]) {
+                    storyScript = rawStoryScript[scriptAccessKey];
+                    console.log(`SUCCESS: Parsed from rawStoryScript.${scriptAccessKey}`);
+                } else if (rawStoryScript.yaju_scene) {
+                    storyScript = rawStoryScript.yaju_scene;
+                    console.log(`SUCCESS: Parsed from rawStoryScript.yaju_scene (used for effective level ${effectiveLevel})`);
+                } else if (rawStoryScript.actions && Array.isArray(rawStoryScript.actions)) {
+                    storyScript = rawStoryScript; // Assumes rawStoryScript itself is the script object
+                    console.log(`SUCCESS: Parsed from rawStoryScript.actions (raw script is the storyScript for effective level ${effectiveLevel})`);
+                } else {
+                    let foundInSubKey = false;
+                    for (const keyInRaw in rawStoryScript) {
+                        if (rawStoryScript[keyInRaw] && rawStoryScript[keyInRaw].actions && Array.isArray(rawStoryScript[keyInRaw].actions)) {
+                            storyScript = rawStoryScript[keyInRaw];
+                            console.log(`SUCCESS: Parsed from rawStoryScript.${keyInRaw}.actions (found in sub-key for effective level ${effectiveLevel})`);
+                            foundInSubKey = true;
+                            break;
                         }
                     }
-                };
-                console.log('✅ Created emergency fallback script');
-            }
-            
-            console.log(`Loaded raw story script for LEVEL ${this.level}:`, rawStoryScript);
-            
-            if (!rawStoryScript) {
-                throw new Error(`No story script found for LEVEL ${this.level}`);
-            }
-            
-            // Add detailed logging before the checks
-            console.log(`Checking for script key: 'yaju_script${this.level}'`);
-            console.log('rawStoryScript.scripts exists:', !!rawStoryScript.scripts);
-            if (rawStoryScript.scripts) {
-                 console.log(`Accessing rawStoryScript.scripts['yaju_script${this.level}']:`, rawStoryScript.scripts[`yaju_script${this.level}`]);
-            }
-            
-            // Check for updated format (scripts.yaju_scriptX)
-            if (rawStoryScript.scripts && rawStoryScript.scripts[`yaju_script${this.level}`]) {
-                storyScript = rawStoryScript.scripts[`yaju_script${this.level}`];
-                console.log(`Found story script in scripts.yaju_script${this.level} format`);
-            }
-            // Fallback to old format (scenes.yaju_scene)
-            else if (rawStoryScript.scenes && rawStoryScript.scenes.yaju_scene) {
-                storyScript = rawStoryScript.scenes.yaju_scene;
-                console.log('Found story script in scenes.yaju_scene format');
-            }
-            // Another possible format
-            else if (rawStoryScript[`yaju_script${this.level}`]) {
-                storyScript = rawStoryScript[`yaju_script${this.level}`];
-                console.log(`Found story script directly in yaju_script${this.level} property`);
-            }
-            // Try another common format
-            else if (rawStoryScript.yaju_scene) {
-                storyScript = rawStoryScript.yaju_scene;
-                console.log('Found story script directly in yaju_scene property');
-            }
-            // If we still don't have it, look for any actions array
-            else if (rawStoryScript.actions && Array.isArray(rawStoryScript.actions)) {
-                storyScript = rawStoryScript;
-                console.log('Found story script with top-level actions array');
-            }
-            else {
-                // Last attempt - check all properties for an actions array
-                for (const key in rawStoryScript) {
-                    if (rawStoryScript[key] && rawStoryScript[key].actions && Array.isArray(rawStoryScript[key].actions)) {
-                        storyScript = rawStoryScript[key];
-                        console.log(`Found story script in ${key} property`);
-                        break;
+                    if (!foundInSubKey) {
+                        console.warn(`WARN: Could not find a valid script structure within rawStoryScript for effective LEVEL ${effectiveLevel}.`);
+                        // storyScript remains null here, will trigger emergency script creation below.
                     }
                 }
-            }
-            
-            if (!storyScript || !storyScript.actions) {
-                console.error('No valid actions found in story script, creating emergency script');
-                storyScript = { 
-                    actions: [
-                        {
-                            type: "text",
-                            content: "Error loading story script. Please restart the game."
-                        },
-                        {
-                            type: "endGame"
-                        }
-                    ]
-                };
+
+                // If after all checks, storyScript or storyScript.actions is invalid from the raw script
+                if (!storyScript || !storyScript.actions || !Array.isArray(storyScript.actions)) {
+                    console.error(`Error: Parsed storyScript for effective LEVEL ${effectiveLevel} is invalid or has no actions. Creating emergency script.`);
+                    const errorMsg = `Script for Level ${originalLevel} was missing or invalid. Fallback to Level 1 script was also missing or invalid.`;
+                    storyScript = {
+                        actions: [
+                            { type: "text", content: errorMsg },
+                            { type: "endGame" }
+                        ]
+                    };
+                }
+            } else if (!storyScript) { // This case handles if rawStoryScript was null for both original and fallback.
+                 console.error(`Critical: Both original and fallback L1 scripts were missing from cache. Using emergency script.`);
+                 const criticalErrorMsg = `Story for Level ${originalLevel} is missing. Fallback to Level 1 story also failed.`;
+                 storyScript = {
+                     actions: [
+                         { type: "text", content: criticalErrorMsg },
+                         { type: "endGame" }
+                     ]
+                 };
             }
             
             // Store story actions directly from the parsed structure
-            if (storyScript && Array.isArray(storyScript.actions)) {
-                this.storyActions = storyScript.actions;
-                console.log(`Loaded ${this.storyActions.length} story actions`);
-            } else {
-                console.error(`No valid actions found in story script`);
-                this.storyActions = [];
+            this.storyActions = (storyScript && Array.isArray(storyScript.actions)) ? storyScript.actions : [];
+            if (this.storyActions.length === 0) {
+                 console.warn(`WARN: Final storyActions array is empty for original level ${originalLevel} (effective script level ${effectiveLevel}). An error message should have been displayed if it was an emergency script.`);
             }
+            console.log(`Loaded ${this.storyActions.length} story actions. Original requested level: ${originalLevel}, Effective script content from level: ${effectiveLevel}.`);
             
             // Create character container
             this.characterContainer = this.add.container(GAME_WIDTH/2, GAME_HEIGHT/2);

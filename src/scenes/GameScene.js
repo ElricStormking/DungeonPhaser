@@ -241,6 +241,24 @@ export default class GameScene extends Phaser.Scene {
             frameHeight: 32
         });
         
+        // Load boss assets
+        this.load.spritesheet('boss_summoner', 'assets/images/boss/boss_summoner.png', {
+            frameWidth: 76, 
+            frameHeight: 76
+        });
+        this.load.spritesheet('boss_berserker', 'assets/images/boss/boss_berserker.png', {
+            frameWidth: 76, 
+            frameHeight: 76
+        });
+        this.load.spritesheet('boss_alchemist', 'assets/images/boss/boss_alchemist.png', {
+            frameWidth: 76, 
+            frameHeight: 76
+        });
+        this.load.spritesheet('boss_lichking', 'assets/images/boss/boss_lichking.png', {
+            frameWidth: 76, 
+            frameHeight: 76
+        });
+        
         // Load combat assets
         this.load.image('bullet', 'assets/images/projectiles/particle.png');
         this.load.image('particle', 'assets/images/effects/particle.png');
@@ -255,6 +273,7 @@ export default class GameScene extends Phaser.Scene {
     create() {
         console.log('GameScene create - Starting game scene setup');
         console.log(`Selected hero class: ${this.selectedHeroKey}`);
+        console.log("⭐⭐⭐ GameScene CREATE called ⭐⭐⭐");
 
         // Initialize resource manager first for other systems to use
         this.resourceManager = new ResourceManager(this);
@@ -581,9 +600,75 @@ export default class GameScene extends Phaser.Scene {
         // Listen for game pause
         this.input.keyboard.on('keydown-ESC', () => {
             if (this.gameActive && !this.gameOver) {
-                console.log('Game paused');
-                this.scene.pause();
-                if (this.uiManager) this.uiManager.showPauseMenu();
+                console.log('Attempting to pause game (manual pause)...');
+                this.gameActive = false; 
+                
+                if (this.physics && this.physics.world) {
+                    this.physics.world.pause(); 
+                    console.log('GameScene: Physics world paused.');
+                }
+                if (this.spawnSystem) {
+                    this.spawnSystem.pauseTimers();
+                    console.log('GameScene: SpawnSystem timers paused.');
+                }
+                if (this.player && typeof this.player.stopActions === 'function') {
+                    this.player.stopActions();
+                } else if (this.player) {
+                    console.warn('Player.stopActions() is not a function or player is null');
+                }
+
+                // Enable input debugging when pause menu is shown
+                // this.input.enableDebug(true, 0xff00ff); // Magenta for debug lines
+                // console.log("Phaser Input Debugger ENABLED for GameScene");
+
+                // TEST: Add a simple interactive rectangle to GameScene directly
+                if (this.testInteractiveRect) { 
+                    try { this.testInteractiveRect.destroy(); } catch(e){} 
+                }
+                this.testInteractiveRect = this.add.rectangle(150, 150, 100, 100, 0xff0000, 0.8)
+                    .setInteractive({ useHandCursor: true })
+                    .setScrollFactor(0)
+                    .setDepth(9999); // Ensure it is on top
+                this.testInteractiveRect.on('pointerdown', () => {
+                    console.log("!!!!!!!!!! GameScene TEST RECTANGLE CLICKED !!!!!!!!!!");
+                });
+                console.log("GameScene: Added TEST INTERACTIVE RECTANGLE. Interactive:", this.testInteractiveRect.input.enabled);
+
+                if (this.uiManager) {
+                    this.uiManager.showPauseMenu();
+                } else {
+                    console.error("UIManager not available to show pause menu!");
+                    // If UIManager fails, revert to active state and resume systems
+                    this.gameActive = true; 
+                    if (this.physics && this.physics.world) this.physics.world.resume();
+                    if (this.spawnSystem) this.spawnSystem.resumeTimers();
+                }
+            } else if (!this.gameActive && this.uiManager && this.uiManager.isPaused) {
+                console.log('Attempting to resume game via ESC from pause menu (manual resume)...');
+                this.uiManager.hidePauseMenu();
+                
+                // Disable input debugging when menu is hidden
+                // this.input.enableDebug(false);
+                // console.log("Phaser Input Debugger DISABLED for GameScene");
+
+                // Clean up the test rectangle
+                if (this.testInteractiveRect) {
+                    try { this.testInteractiveRect.destroy(); } catch(e){}
+                    this.testInteractiveRect = null;
+                }
+
+                if (this.physics && this.physics.world) {
+                    this.physics.world.resume();
+                    console.log('GameScene: Physics world resumed.');
+                }
+                if (this.spawnSystem) {
+                    this.spawnSystem.resumeTimers();
+                    console.log('GameScene: SpawnSystem timers resumed.');
+                }
+                // Resume other systems
+
+                this.gameActive = true;
+                console.log(`[ESC Resume] GameScene.gameActive set to: ${this.gameActive}`);
             }
         });
         
@@ -649,6 +734,23 @@ export default class GameScene extends Phaser.Scene {
             this.audioManager = new AudioManager(this);
             this.audioManager.init();
         }
+
+        // Create global/boss animations here after textures are loaded
+        /* Commenting out summoner boss animation creation
+        if (this.textures.exists('boss_summoner')) {
+            if (!this.anims.exists('boss_summoner_walk')) {
+                this.anims.create({
+                    key: 'boss_summoner_walk',
+                    frames: this.anims.generateFrameNumbers('boss_summoner', { start: 0, end: 3 }),
+                    frameRate: 8,
+                    repeat: -1
+                });
+                console.log('[GameScene] Created animation: boss_summoner_walk');
+            }
+        } else {
+            console.warn('[GameScene] Texture "boss_summoner" not found during createSystems. Animation not created.');
+        }
+        */
     }
     
     /**
@@ -690,6 +792,9 @@ export default class GameScene extends Phaser.Scene {
         if (this.gameOver || !this.gameActive) {
             // Even when game is paused, we still want to update UI elements
             if (this.uiManager) this.uiManager.update();
+            if (!this.gameActive && !this.gameOver) {
+                // console.log(`GameScene update: SKIPPING due to !gameActive (gameActive: ${this.gameActive}, gameOver: ${this.gameOver})`);
+            }
             return;
         }
 
