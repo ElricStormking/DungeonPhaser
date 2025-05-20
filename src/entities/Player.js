@@ -624,14 +624,17 @@ export default class Player extends Character {
      * @param {number} delta - Time since last update
      */
     update(time, delta) {
-        // Update cooldown timers
+        super.update(time, delta);
+        
+        // Update cooldowns
         if (this.specialAttackCooldown > 0) {
-            this.specialAttackCooldown = Math.max(0, this.specialAttackCooldown - delta);
+            this.specialAttackCooldown -= delta;
+        }
+        if (this.basicAttackCooldownTimer > 0) {
+            this.basicAttackCooldownTimer -= delta;
         }
         
-        if (this.basicAttackCooldownTimer > 0) {
-            this.basicAttackCooldownTimer = Math.max(0, this.basicAttackCooldownTimer - delta);
-        }
+        // Handle invulnerability tint (moved to VisualEffects.js)
         
         // Update animation based on movement direction
         if (this.direction) {
@@ -701,8 +704,34 @@ export default class Player extends Character {
                              this.direction === 'up' ? 12 : 0);
             }
         }
-        
-        // Call parent update method to handle common functionality
-        super.update(time, delta);
+    }
+
+    /**
+     * Stops any ongoing player actions, typically called when pausing the game.
+     */
+    stopActions() {
+        // Stop current movement
+        if (this.body) {
+            this.body.setVelocity(0, 0);
+        }
+
+        // If there are specific attack animations or processes that need to be stopped,
+        // add that logic here. For example, stopping a channeled spell or a dash.
+        // e.g., if (this.isDashing) this.isDashing = false;
+        // e.g., if (this.channelingSpell) this.stopChanneling();
+
+        // Stop current animation and set to a static frame (e.g., facing down)
+        // This prevents the walk animation from playing while paused.
+        if (this.anims && this.anims.currentAnim) {
+            // Get the first frame of the current animation
+            const currentAnimKey = this.anims.currentAnim.key;
+            const animData = this.scene.anims.get(currentAnimKey);
+            if (animData && animData.frames && animData.frames.length > 0) {
+                this.setFrame(animData.frames[0].textureFrame);
+            }
+            this.anims.stop();
+        }
+
+        console.log(`${this.heroClass.name || 'Player'} actions stopped for pause.`);
     }
 } 

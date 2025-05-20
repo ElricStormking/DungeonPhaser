@@ -13,7 +13,8 @@ export default class Enemy extends Character {
             health: config.health || 1,
             maxHealth: config.health || 1, // Set max to initial health
             tint: config.tint || 0xFF0000,
-            bodySize: { width: TILE_SIZE * 0.8, height: TILE_SIZE * 0.8 }
+            bodySize: (config.isBoss && config.texture === 'boss_summoner') ? null : 
+                      ((config.isBoss && config.texture !== 'enemy') ? null : { width: TILE_SIZE * 0.8, height: TILE_SIZE * 0.8 })
         });
         
         // Enemy type and behavior
@@ -51,10 +52,40 @@ export default class Enemy extends Character {
         // Keep track of active effects
         this.activeEffects = new Map();
         
+        // Cooldown for Summoner's 8-way shot
+        if (this.bossType === 'summoner') {
+            this.eightWayShotCooldown = 0; // Starts ready or with a delay? Let's start with 0 (ready after first max cooldown period)
+            this.eightWayShotCooldownMax = 8000; // 8 seconds
+        }
+        
+        // Cooldown for Berserker's Dash Attack
+        if (this.bossType === 'berserker') {
+            this.berserkerDashCooldown = 0; // Start ready after first max cooldown
+            this.berserkerDashCooldownMax = 4000; // 4 seconds
+            // Ensure dashSpeed is configured for Berserker if not already
+            if (!config.dashSpeed) {
+                this.dashSpeed = (this.speed * 1.8) * 2; // Example: 80% faster than its already fast base speed, then x2
+            }
+        }
+        
         // Initialize special boss visuals if this is a boss
         if (this.isBoss) {
-            // Make boss significantly larger
-            this.setScale(config.scale || 2);
+            if (this.bossType === 'summoner' && this.texture.key === 'boss_summoner') {
+                this.setScale(config.scale || 1.0); // Use scale from config (e.g., 6.0)
+                this.clearTint();
+                // After scaling, resize the body to match the new display dimensions
+                if (this.body) {
+                    this.body.setSize(this.displayWidth, this.displayHeight);
+                    // Optional: Adjust offset if needed, though (0,0) for a centered origin body on a scaled sprite is often fine.
+                    // this.body.setOffset(this.displayWidth * 0.0, this.displayHeight * 0.0); 
+                }
+                console.log(`Summoner Boss (boss_summoner) initial size: ${this.width}x${this.height}, applied scale: ${this.scaleX}x${this.scaleY}, displaySize: ${this.displayWidth}x${this.displayHeight}`);
+                if (this.body) {
+                    console.log(`Summoner Boss (boss_summoner) body size after scaling: ${this.body.width}x${this.body.height}`);
+                }
+            } else {
+                this.setScale(config.scale || 2);
+            }
             
             // Initialize boss visuals with a slight delay to ensure the entity is fully created
             this.scene.time.delayedCall(100, () => {
@@ -76,6 +107,21 @@ export default class Enemy extends Character {
                     ease: 'Bounce.easeOut'
                 });
             });
+        }
+        
+        // If it's a boss AND NOT THE SUMMONER WITH ITS DEDICATED TEXTURE, 
+        // and has a dedicated texture (other than 'enemy'), 
+        // set body size based on texture dimensions, potentially scaled.
+        if (this.isBoss && !(this.bossType === 'summoner' && this.texture.key === 'boss_summoner') && 
+            this.texture.key !== 'enemy' && this.texture.key !== null && this.texture.key !== undefined) {
+            if (this.width > 0 && this.height > 0) {
+                this.body.setSize(this.displayWidth * 0.7, this.displayHeight * 0.8); // Use displayWidth/Height for scaled body
+                this.body.setOffset(this.displayWidth * 0.15, this.displayHeight * 0.1); 
+                 console.log(`Boss ${this.bossType} (non-summoner with texture ${this.texture.key}) body manually set to: ${this.body.width}x${this.body.height} based on scaled texture ${this.displayWidth}x${this.displayHeight}`);
+            } else {
+                this.body.setSize(TILE_SIZE * 2 * (this.scaleX || 1), TILE_SIZE * 2 * (this.scaleY || 1)); 
+                console.warn(`Boss ${this.bossType} (non-summoner) texture dimensions not ready, using fallback body size.`);
+            }
         }
         
         console.log(`Enemy created: type=${this.enemyType}, speed=${this.speed} (1.5x original speed)`);
@@ -345,10 +391,15 @@ export default class Enemy extends Character {
         const dirX = Math.cos(angle);
         const dirY = Math.sin(angle);
         
+        // Calculate spawn offset
+        const offsetDistance = Math.max(this.displayWidth * 0.75, TILE_SIZE * 1.5); // Increased for safety, with a minimum
+        const spawnX = this.x + dirX * offsetDistance;
+        const spawnY = this.y + dirY * offsetDistance;
+
         // Instead of manually creating and configuring a projectile
         // Use the factory method to create an enemy projectile
         const projectile = Projectile.createEnemyProjectile(
-            this.scene, this.x, this.y, dirX, dirY, this.attackDamage
+            this.scene, spawnX, spawnY, dirX, dirY, this.attackDamage
         );
         
         if (projectile) {
@@ -462,9 +513,14 @@ export default class Enemy extends Character {
         const dirX = Math.cos(angle);
         const dirY = Math.sin(angle);
         
+        // Calculate spawn offset
+        const offsetDistance = Math.max(this.displayWidth * 0.75, TILE_SIZE * 1.5); // Increased for safety, with a minimum
+        const spawnX = this.x + dirX * offsetDistance;
+        const spawnY = this.y + dirY * offsetDistance;
+
         // Use the factory method to create an enemy projectile
         const projectile = Projectile.createEnemyProjectile(
-            this.scene, this.x, this.y, dirX, dirY, this.attackDamage
+            this.scene, spawnX, spawnY, dirX, dirY, this.attackDamage
         );
         
         if (projectile) {
@@ -558,16 +614,40 @@ export default class Enemy extends Character {
                 this.speed = this.originalSpeed;
             }
         }
+
+        // Handle 8-way shot cooldown for Summoner
+        if (this.eightWayShotCooldown > 0) {
+            this.eightWayShotCooldown -= this.scene.game.loop.delta;
+        }
+
+        // Perform 8-way shot if cooldown is ready
+        if (this.eightWayShotCooldown <= 0) {
+            this.performEightWayShot();
+            this.eightWayShotCooldown = this.eightWayShotCooldownMax;
+        }
     }
     
     /**
      * Berserker Boss behavior - dashes and area attacks
      */
     updateBerserkerBossBehavior() {
-        if (!this.active) return;
+        if (!this.active || this.isDashing) return; // Don't do other actions if already dashing
+
+        // Handle Berserker Dash Cooldown
+        if (this.berserkerDashCooldown > 0) {
+            this.berserkerDashCooldown -= this.scene.game.loop.delta;
+        }
+
+        // Try to dash if cooldown is ready
+        if (this.berserkerDashCooldown <= 0) {
+            this.performDash(); // Reusing the existing dash logic
+            this.berserkerDashCooldown = this.berserkerDashCooldownMax; // Reset cooldown
+            // After initiating a dash, the performDash method handles the dashing state.
+            // We don't want to immediately moveTowardPlayer in the same frame.
+            return; 
+        }
         
-        // Implement berserker boss behavior
-        // This can be implemented later if needed
+        // If not dashing and dash is on cooldown, move toward player
         this.moveTowardPlayer();
     }
     
@@ -916,6 +996,12 @@ export default class Enemy extends Character {
             console.log(`[Enemy.die] Enemy kill was already counted in damage(). Type: ${this.enemyType}`);
         }
         
+        // If this was a boss, stop boss music and resume stage music
+        if (this.isBoss && this.scene && this.scene.audioManager && this.scene.currentLevel) {
+            console.log(`Boss ${this.bossType} died. Resuming stage BGM for level ${this.scene.currentLevel}.`);
+            this.scene.audioManager.playLevelBGM(this.scene.currentLevel);
+        }
+        
         // Create death effect and destroy
         this.createDeathEffect();
         this.destroy();
@@ -963,7 +1049,7 @@ export default class Enemy extends Character {
         }
         
         // Base configuration for level scaling - speed is multiplied by 1.5 in constructor
-        const baseSpeed = 40 + (level * 2);
+        const baseSpeed = 70 + (level * 2);
         const baseHealth = 1 + Math.floor(level / 3);
         
         // Configure based on enemy type
@@ -1036,45 +1122,69 @@ export default class Enemy extends Character {
         switch (stageNumber) {
             case 1:
                 bossType = 'summoner';
-                config.tint = 0x00FF00; // Green
-                config.health = 50;
-                config.speed = 30;
+                // config.tint = 0x00FF00; // Green - Will be cleared for dedicated sprite
+                config.health = 100;
+                config.speed = 50;
                 config.attackDamage = 2;
+                config.texture = 'boss_summoner'; 
+                config.scale = 2.5; 
                 break;
             case 2:
                 bossType = 'berserker';
-                config.tint = 0xFF0000; // Red
-                config.health = 75;
-                config.speed = 40;
+                // config.tint = 0xFF0000; // Red - Will be cleared for dedicated sprite
+                config.health = 200;
+                config.speed = 70;
                 config.attackDamage = 3;
+                config.texture = 'boss_berserker'; // Use the boss_berserker sprite
+                config.scale = 2.5; 
                 break;
             case 3:
                 bossType = 'alchemist';
-                config.tint = 0x9900FF; // Purple
-                config.health = 100;
+                // config.tint = 0x9900FF; // Purple - Will be cleared for dedicated sprite
+                config.health = 200;
                 config.speed = 35;
                 config.attackDamage = 3;
+                config.texture = 'boss_alchemist'; // Use the boss_alchemist sprite
+                config.scale = 2.5;
                 break;
             case 4:
                 bossType = 'lichking';
-                config.tint = 0x6600CC; // Dark purple
-                config.health = 150;
-                config.speed = 30;
+                // config.tint = 0x6600CC; // Dark purple - Will be cleared for dedicated sprite
+                config.health = 450;
+                config.speed = 50;
                 config.attackDamage = 4;
+                config.texture = 'boss_lichking'; // Use the boss_lichking sprite
+                config.scale = 2.5;
                 break;
             default:
-                bossType = 'summoner';
+                bossType = 'summoner'; // Default to summoner if stageNumber is out of bounds
                 config.health = 50;
                 config.speed = 30;
+                config.texture = 'boss_summoner'; 
+                config.scale =  2.5; 
         }
         
         config.bossType = bossType;
         config.scoreValue = config.health * 5;
         config.experienceValue = config.health * 3;
         config.specialAbilityCooldownMax = 5000;
-        config.scale = 2.2; // Make bosses even larger and more imposing
+        // config.scale is now set per boss type
         
         const boss = new Enemy(scene, x, y, config);
+        
+        // Play animations based on boss type if they exist
+        if (bossType === 'summoner' || bossType === 'berserker' || bossType === 'alchemist' || bossType === 'lichking') {
+            // Ensure the texture is set, but don't play animation (for now)
+            if (scene.textures.exists(config.texture)) {
+                // boss.play('animation_key_if_any'); 
+                boss.clearTint(); // Remove tint if using dedicated sprite
+            } else {
+                console.warn(`[Enemy.js] Texture "${config.texture}" not found. Boss will use tint.`);
+                if (config.tint && !boss.texture.key.startsWith('boss_')) { 
+                    boss.setTint(config.tint);
+                }
+            }
+        }
         
         // Add screen shake and boss warning text
         scene.cameras.main.shake(500, 0.02);
@@ -1115,7 +1225,9 @@ export default class Enemy extends Character {
         
         // Play boss spawn sound if audio manager exists
         if (scene.audioManager) {
-            scene.audioManager.playSFX('boss_spawn');
+            // Stop current stage music and play boss music
+            // Assuming 'boss_music_main' is the key for boss_spawn.mp3 and it should loop
+            scene.audioManager.playMusic('boss_music_main', true, 500); // Loop, 0.5s fade-in
         }
         
         return boss;
@@ -1169,5 +1281,54 @@ export default class Enemy extends Character {
                 this.onBossPhaseChange();
             }
         }
+    }
+
+    /**
+     * Perform an 8-directional shot (Summoner Boss)
+     */
+    performEightWayShot() {
+        if (!this.active || !this.scene || !this.scene.bullets) return;
+
+        const numProjectiles = 8;
+        const angleStep = (Math.PI * 2) / numProjectiles; // 360 degrees / 8 = 45 degrees in radians
+
+        for (let i = 0; i < numProjectiles; i++) {
+            const angle = i * angleStep;
+            const dirX = Math.cos(angle);
+            const dirY = Math.sin(angle);
+
+            // Calculate spawn offset
+            const offsetDistance = Math.max(this.displayWidth * 0.75, TILE_SIZE * 1.5); // Increased for safety, with a minimum
+            const spawnX = this.x + dirX * offsetDistance;
+            const spawnY = this.y + dirY * offsetDistance;
+
+            // Use the factory method to create an enemy projectile
+            const projectile = Projectile.createEnemyProjectile(
+                this.scene,
+                spawnX,
+                spawnY,
+                dirX,
+                dirY,
+                this.attackDamage, // Use boss's attack damage
+                225 // New, faster speed for 8-way shot
+            );
+
+            if (projectile) {
+                // Add to bullets group
+                this.scene.bullets.add(projectile);
+                // Add a lifespan to ensure cleanup
+                projectile.setLifespan(5000); // 5 seconds max lifetime
+
+                // Optional: play a sound effect for each shot if desired
+                // if (this.scene.audioManager) {
+                //     this.scene.audioManager.playSFX('enemy_shoot'); 
+                // }
+            }
+        }
+        // Play a distinct sound for the 8-way shot ability
+        if (this.scene.audioManager) {
+            this.scene.audioManager.playSFX('boss_spell_multi'); // A new sfx key, or reuse one
+        }
+        console.log(`${this.bossType} boss performed 8-way shot.`);
     }
 } 

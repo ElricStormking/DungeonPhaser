@@ -99,7 +99,8 @@ export default class Projectile extends Phaser.Physics.Arcade.Sprite {
      * @param {number} dirY - Y direction
      */
     fire(dirX, dirY) {
-        // Avoid division by zero and ensure we have a direction
+        console.log(`[Projectile.fire] CALLED with dirX: ${dirX}, dirY: ${dirY}, initial this.speed: ${this.speed}`); // Log 1: Inputs
+
         const magnitude = Math.sqrt(dirX * dirX + dirY * dirY);
         let normalizedDirX = 0;
         let normalizedDirY = 0;
@@ -111,18 +112,19 @@ export default class Projectile extends Phaser.Physics.Arcade.Sprite {
             // Default direction if none provided
             normalizedDirX = 1;
             normalizedDirY = 0;
-            console.warn("Projectile fired with near-zero direction vector, using default direction");
+            console.warn("[Projectile.fire] Fired with near-zero direction vector, using default direction");
         }
-        
+        console.log(`[Projectile.fire] magnitude: ${magnitude}, normalizedDirX: ${normalizedDirX}, normalizedDirY: ${normalizedDirY}`); // Log 2: Normalization results
+
         // Ensure the body exists before setting velocity
         if (this.body) {
-            // Set velocity - use a minimum velocity to ensure movement
             this.body.velocity.x = normalizedDirX * this.speed;
             this.body.velocity.y = normalizedDirY * this.speed;
+            console.log(`[Projectile.fire] AFTER setting velocity: vx=${this.body.velocity.x}, vy=${this.body.velocity.y}, using this.speed: ${this.speed}`); // Log 3: Velocity after mult
             
             // Verify velocity was set (debug info)
             if (Math.abs(this.body.velocity.x) < 0.1 && Math.abs(this.body.velocity.y) < 0.1) {
-                console.error("Failed to set projectile velocity! Values too small.", {
+                console.error("[Projectile.fire] Failed to set projectile velocity! Values too small.", {
                     dirX, dirY, normalizedDirX, normalizedDirY, speed: this.speed
                 });
                 
@@ -132,15 +134,18 @@ export default class Projectile extends Phaser.Physics.Arcade.Sprite {
                 } else {
                     this.body.velocity.y = dirY > 0 ? 100 : -100;
                 }
+                console.log(`[Projectile.fire] AFTER FALLBACK 1: vx=${this.body.velocity.x}, vy=${this.body.velocity.y}`); // Log 4: After fallback 1
             }
             
             // Extra protection - if still no movement, use a default velocity
-            if (this.body.velocity.x === 0 && this.body.velocity.y === 0) {
-                console.warn("Zero velocity detected after setting, using fallback velocity");
+            if (this.body.velocity.x === 0 && this.body.velocity.y === 0 && this.speed > 0) { // only apply if speed was intended
+                console.warn("[Projectile.fire] Zero velocity detected after setting, using fallback velocity (100,0)");
                 this.body.velocity.x = 100;
+                this.body.velocity.y = 0; // ensure y is also set, might have been 0
+                console.log(`[Projectile.fire] AFTER FALLBACK 2: vx=${this.body.velocity.x}, vy=${this.body.velocity.y}`); // Log 5: After fallback 2
             }
         } else {
-            console.error("Projectile body not initialized when firing!");
+            console.error("[Projectile.fire] Projectile body not initialized when firing!");
         }
         
         // Set rotation
@@ -185,6 +190,10 @@ export default class Projectile extends Phaser.Physics.Arcade.Sprite {
      */
     preUpdate(time, delta) {
         super.preUpdate(time, delta);
+        
+        if (this.isEnemyProjectile && this.active && this.body) {
+            console.log(`Enemy Projectile preUpdate: x=${this.x.toFixed(2)}, y=${this.y.toFixed(2)}, vx=${this.body.velocity.x.toFixed(2)}, vy=${this.body.velocity.y.toFixed(2)}, moves: ${this.body.moves}, immovable: ${this.body.immovable}`);
+        }
         
         // Check for out-of-bounds and clean up
         const padding = TILE_SIZE * 2;
@@ -379,12 +388,12 @@ export default class Projectile extends Phaser.Physics.Arcade.Sprite {
     /**
      * Factory method to create an enemy projectile
      */
-    static createEnemyProjectile(scene, x, y, dirX, dirY, damage = 1) {
+    static createEnemyProjectile(scene, x, y, dirX, dirY, damage = 1, speed = 150) {
         const projectile = new Projectile(scene, x, y, 'bullet');
         projectile.setDamage(damage);
         
         // Set the speed before firing to ensure proper velocity
-        projectile.setSpeed(150); // Slightly faster so enemy bullets are more challenging
+        projectile.setSpeed(speed); // Use the provided or default speed
         
         // Set as enemy projectile
         projectile.setAsEnemyProjectile();
@@ -411,6 +420,38 @@ export default class Projectile extends Phaser.Physics.Arcade.Sprite {
         });
         
         // Fire the projectile and return it
-        return projectile.fire(dirX, dirY);
+        const firedProjectile = projectile.fire(dirX, dirY);
+
+        if (firedProjectile && firedProjectile.body) {
+            firedProjectile.body.setAllowGravity(false); // Ensure no gravity affects enemy bullets
+            
+            // Temporarily disable body to prevent immediate collision with firer
+            firedProjectile.body.enable = false;
+            const initialSpeed = firedProjectile.speed; // Store speed before body is disabled
+
+            scene.time.delayedCall(200, () => { // Increased delay to 200ms
+                if (firedProjectile.active && firedProjectile.body) {
+                    firedProjectile.body.enable = true;
+                    // Re-apply velocity to ensure it's moving
+                    const magnitude = Math.sqrt(dirX * dirX + dirY * dirY);
+                    let normalizedDirX = dirX;
+                    let normalizedDirY = dirY;
+                    if (magnitude > 0.001) {
+                        normalizedDirX = dirX / magnitude;
+                        normalizedDirY = dirY / magnitude;
+                    } else { 
+                        // Default to moving right if direction is zero (should not happen here)
+                        normalizedDirX = 1;
+                        normalizedDirY = 0;
+                    }
+                    firedProjectile.body.velocity.x = normalizedDirX * initialSpeed;
+                    firedProjectile.body.velocity.y = normalizedDirY * initialSpeed;
+                    console.log(`[Projectile Delayed Re-enable] Re-applied velocity: vx=${firedProjectile.body.velocity.x}, vy=${firedProjectile.body.velocity.y}`);
+                }
+            });
+
+            console.log(`[createEnemyProjectile] AFTER fire(): Bullet ${firedProjectile.type}-${firedProjectile.x.toFixed(2)}, body.moves: ${firedProjectile.body.moves}, body.immovable: ${firedProjectile.body.immovable}, body.allowGravity: ${firedProjectile.body.allowGravity}`);
+        }
+        return firedProjectile;
     }
 } 
