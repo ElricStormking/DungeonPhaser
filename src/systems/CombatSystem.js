@@ -258,9 +258,12 @@ export default class CombatSystem {
         if (!bullet.active || !enemy.active) return;
         
         // Skip enemy projectiles hitting enemies
-        if (bullet.isEnemyProjectile) return;
+        if (bullet.isEnemyProjectile) {
+            // console.log(`[CombatSystem] Enemy projectile overlap with enemy ${enemy.enemyType} was correctly ignored.`);
+            return;
+        }
         
-        console.log("Bullet-enemy collision detected:", bullet, enemy);
+        console.log(`[CombatSystem] PLAYER BULLET hit ENEMY. Bullet ID: ${bullet.type}-${bullet.x}, Enemy: ${enemy.enemyType}`);
         
         const damage = bullet.damage || 1;
         let destroyBullet = true;
@@ -353,6 +356,8 @@ export default class CombatSystem {
         // Only process if it's an enemy projectile
         if (!bullet.active || !follower.active || !bullet.isEnemyProjectile) return;
         
+        console.log(`[CombatSystem] ENEMY PROJECTILE hit FOLLOWER. Bullet ID: ${bullet.type}-${bullet.x}, Follower:`, follower);
+
         // Apply damage to follower
         follower.damage(bullet.damage || 1);
         
@@ -369,8 +374,8 @@ export default class CombatSystem {
         // Only process if it's an enemy projectile and player is not invulnerable
         if (!bullet.active || !player.active || !bullet.isEnemyProjectile || player.isInvulnerable) return;
         
-        console.log("Enemy projectile hit player:", bullet);
-        
+        console.log(`[CombatSystem] ENEMY PROJECTILE hit PLAYER. Bullet ID: ${bullet.type}-${bullet.x}, Player:`, player);
+
         // Apply damage to player
         player.damage(bullet.damage || 1);
         
