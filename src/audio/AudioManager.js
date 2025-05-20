@@ -259,6 +259,9 @@ export default class AudioManager {
         this.safeLoadAudio('pickup', 'assets/audio/sfx/pickup.mp3');
         this.safeLoadAudio('enemy_death', 'assets/audio/sfx/enemy_death.mp3');
         this.safeLoadAudio('boss_spawn', 'assets/audio/sfx/boss_spawn.mp3');
+        this.safeLoadAudio('sfx_SPELL_FIRE', 'assets/audio/sfx/fire_spell.mp3');
+        this.safeLoadAudio('sfx_SPELL_ICE', 'assets/audio/sfx/ice_spell.mp3');
+        this.safeLoadAudio('boss_spell_multi', 'assets/audio/sfx/boss_spell_multi.mp3');
     }
     
     /**
@@ -698,5 +701,41 @@ export default class AudioManager {
     playAttackSound(attackType) {
         const soundKey = `attack_${attackType}`;
         this.playSFX(soundKey);
+    }
+    
+    /**
+     * Stops all currently playing music and sound effects.
+     */
+    stopAllActiveSounds() {
+        if (this.isDevelopmentMode) {
+            console.log('[AudioManager] stopAllActiveSounds called');
+        }
+
+        // Stop current music
+        this.stopMusic(0); // 0ms fadeOut
+
+        // Stop all currently playing sound effects
+        if (this.scene && this.scene.sound && this.scene.sound.sounds) {
+            let sfxStoppedCount = 0;
+            this.scene.sound.sounds.forEach(sound => {
+                if (sound.isPlaying) {
+                    try {
+                        sound.stop();
+                        sfxStoppedCount++;
+                    } catch (e) {
+                        if (this.isDevelopmentMode) {
+                            console.warn(`[AudioManager] Error stopping sound ${sound.key}:`, e);
+                        }
+                    }
+                }
+            });
+            if (this.isDevelopmentMode) {
+                console.log(`[AudioManager] Stopped ${sfxStoppedCount} active sound effects.`);
+            }
+        } else {
+            if (this.isDevelopmentMode) {
+                console.warn('[AudioManager] Cannot stop SFX: scene.sound.sounds not available.');
+            }
+        }
     }
 } 
