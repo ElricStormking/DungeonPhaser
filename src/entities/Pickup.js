@@ -174,4 +174,18 @@ export default class Pickup extends Phaser.Physics.Arcade.Sprite {
         
         return engineer;
     }
+
+    update(time, delta) {
+        if (!this.active || !this.isEngineer || !this.scene || !this.scene.player || !this.scene.player.active) {
+            return;
+        }
+
+        // Auto-collect if player is close enough
+        const player = this.scene.player;
+        const distance = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
+
+        if (distance <= TILE_SIZE * 2) { // 2 grid units
+            this.collect();
+        }
+    }
 } 
