@@ -30,6 +30,10 @@ export default class UIManager {
         this.bossWarningActive = false;
         this._lastKilledCount = 0;
         
+        // Pause menu elements
+        this.pauseMenuContainer = null;
+        this.isPaused = false;
+        
         // Initialize UI
         this.createUI();
     }
@@ -601,9 +605,151 @@ export default class UIManager {
      * @param {number} maxHealth - Maximum health
      */
     updateHealthDisplay(health, maxHealth) {
-        // Implement if needed based on your UI design
-        // In this case, we don't need to do anything since health is 
-        // already displayed in the top UI bar
+        // Ensure health bar is updated correctly (Not shown in current snippet but assuming it exists)
+    }
+    
+    /**
+     * Show the pause menu
+     */
+    showPauseMenu() {
+        if (this.isPaused) return;
+        console.log("[UIManager] showPauseMenu called");
+        this.isPaused = true;
+
+        // Create a container for all pause menu elements, including the overlay
+        this.pauseMenuContainer = this.scene.add.container(0, 0) // Position at 0,0 as its contents will be screen-centered
+            .setScrollFactor(0)
+            .setDepth(UI_DEPTH + 20); // High depth for the whole menu
+
+        // Semi-transparent background overlay - covers the whole screen
+        const overlay = this.scene.add.rectangle(
+            GAME_WIDTH / 2, GAME_HEIGHT / 2, 
+            GAME_WIDTH, GAME_HEIGHT, 
+            0x000000, 0.7
+        )
+        // .setInteractive(); // Remove interactivity from overlay, let buttons handle it
+
+        // Menu background panel (centered)
+        const menuBg = this.scene.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, 300, 250, 0x222222, 0.95)
+            .setStrokeStyle(2, 0xeeeeee);
+
+        const titleStyle = { fontSize: UI_FONT_SIZES.TITLE || '32px', fontFamily: UI_FONT_FAMILY || 'Arial', fill: '#FFFF00' }; // Bright Yellow
+        const buttonTextStyle = { fontSize: UI_FONT_SIZES.LARGE || '24px', fontFamily: UI_FONT_FAMILY || 'Arial', fill: '#FFFF00' }; // Bright Yellow
+
+        const mainCamera = this.scene.cameras.main;
+        console.log(`[UIManager] Main Camera scroll: x=${mainCamera.scrollX}, y=${mainCamera.scrollY}, zoom=${mainCamera.zoom}`);
+
+        const targetButtonX = GAME_WIDTH / 2;
+        const targetResumeY = GAME_HEIGHT / 2 - 10;
+        const targetMainMenuY = GAME_HEIGHT / 2 + 50;
+        console.log(`[UIManager] Target Coords: ResumeBtn=(${targetButtonX}, ${targetResumeY}), MainMenuBtn=(${targetButtonX}, ${targetMainMenuY})`);
+
+        const pausedText = this.scene.add.text(targetButtonX, GAME_HEIGHT / 2 - 80, 'Paused', titleStyle)
+            .setOrigin(0.5)
+            .setScrollFactor(0); // Ensure paused text also has scrollFactor 0
+
+        // Resume Button
+        const resumeButtonBg = this.scene.add.rectangle(targetButtonX, targetResumeY, 180, 40, 0x555555)
+            .setInteractive({ useHandCursor: true })
+            .setScrollFactor(0)
+            .on('pointerdown', () => {
+                console.log("[UIManager] Resume button clicked (manual resume)");
+                this.hidePauseMenu();
+                
+                // Manually resume systems in GameScene
+                if (this.scene.physics && this.scene.physics.world) {
+                    this.scene.physics.world.resume();
+                    console.log('[Resume Button] GameScene: Physics world resumed.');
+                }
+                if (this.scene.spawnSystem) {
+                    this.scene.spawnSystem.resumeTimers();
+                    console.log('[Resume Button] GameScene: SpawnSystem timers resumed.');
+                }
+                // Resume other systems in GameScene as needed
+
+                this.scene.gameActive = true; 
+                console.log(`[Resume Button] GameScene.gameActive set to: ${this.scene.gameActive}`);
+            });
+        const resumeButtonText = this.scene.add.text(targetButtonX, targetResumeY, 'Resume', buttonTextStyle)
+            .setOrigin(0.5)
+            .setScrollFactor(0);
+
+        // Main Menu Button
+        const mainMenuButtonBg = this.scene.add.rectangle(targetButtonX, targetMainMenuY, 180, 40, 0x555555)
+            .setInteractive({ useHandCursor: true })
+            .setScrollFactor(0)
+            .on('pointerdown', () => {
+                console.log("[UIManager] Main Menu button clicked");
+                this.hidePauseMenu();
+                this.scene.gameActive = false; 
+                
+                if (this.scene.audioManager && typeof this.scene.audioManager.stopAllActiveSounds === 'function') {
+                    this.scene.audioManager.stopAllActiveSounds();
+                } else {
+                    console.warn('[UIManager] audioManager or stopAllActiveSounds not available.');
+                    // Fallback: try to stop music at least
+                    if (this.scene.audioManager && typeof this.scene.audioManager.stopMusic === 'function') {
+                        this.scene.audioManager.stopMusic(0);
+                    }
+                }
+
+                this.scene.scene.stop('GameScene');
+                this.scene.scene.start('TitleScene');
+            });
+        const mainMenuButtonText = this.scene.add.text(targetButtonX, targetMainMenuY, 'Main Menu', buttonTextStyle)
+            .setOrigin(0.5)
+            .setScrollFactor(0);
+
+        this.pauseMenuContainer.add([overlay, menuBg, pausedText]);
+
+        // Store buttons as properties to destroy them later
+        this.resumeButtonBg = resumeButtonBg;
+        this.resumeButtonText = resumeButtonText;
+        this.mainMenuButtonBg = mainMenuButtonBg;
+        this.mainMenuButtonText = mainMenuButtonText;
+
+        // Set a very high depth for buttons and log their properties
+        const highButtonDepth = UI_DEPTH + 50;
+        this.resumeButtonBg.setDepth(highButtonDepth);
+        this.resumeButtonText.setDepth(highButtonDepth + 1); 
+        this.mainMenuButtonBg.setDepth(highButtonDepth);
+        this.mainMenuButtonText.setDepth(highButtonDepth + 1);
+
+        console.log('[UIManager] Resume Btn BG:', {
+            x: this.resumeButtonBg.x, y: this.resumeButtonBg.y, 
+            visible: this.resumeButtonBg.visible, alpha: this.resumeButtonBg.alpha, depth: this.resumeButtonBg.depth
+        });
+        console.log('[UIManager] Resume Btn Txt:', {
+            x: this.resumeButtonText.x, y: this.resumeButtonText.y, 
+            visible: this.resumeButtonText.visible, alpha: this.resumeButtonText.alpha, depth: this.resumeButtonText.depth
+        });
+
+    }
+
+    /**
+     * Hide the pause menu
+     */
+    hidePauseMenu() {
+        if (!this.isPaused || !this.pauseMenuContainer) return;
+        console.log("[UIManager] hidePauseMenu called");
+        this.isPaused = false;
+
+        // Destroy the container and its children (overlay, menuBg, pausedText)
+        this.pauseMenuContainer.destroy(true); 
+        this.pauseMenuContainer = null;
+
+        // Manually destroy buttons if they were added directly to the scene
+        // We need a way to reference them. For now, let's assume they are properties of UIManager.
+        // This will require storing them as properties when created in showPauseMenu.
+        if (this.resumeButtonBg && this.resumeButtonBg.scene) this.resumeButtonBg.destroy();
+        if (this.resumeButtonText && this.resumeButtonText.scene) this.resumeButtonText.destroy();
+        if (this.mainMenuButtonBg && this.mainMenuButtonBg.scene) this.mainMenuButtonBg.destroy();
+        if (this.mainMenuButtonText && this.mainMenuButtonText.scene) this.mainMenuButtonText.destroy();
+
+        this.resumeButtonBg = null;
+        this.resumeButtonText = null;
+        this.mainMenuButtonBg = null;
+        this.mainMenuButtonText = null;
     }
     
     /**
