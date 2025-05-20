@@ -103,13 +103,38 @@ export default class SpawnSystem {
         this.enemiesKilledInWave = 0;
         
         // Check if this is a boss wave
-        const isBossWave = this.currentWave === this.totalWaves && 
-                          (this.currentLevel % 8 === 0);
+        const bossLevels = [4, 12, 20, 28];
+        const isBossWave = this.currentWave === this.totalWaves && bossLevels.includes(this.currentLevel);
         
-        console.log(`[SpawnSystem] Starting wave ${this.currentWave}/${this.totalWaves} (boss: ${isBossWave})`);
+        console.log(`[SpawnSystem] Starting wave ${this.currentWave}/${this.totalWaves} (boss: ${isBossWave}) for level ${this.currentLevel}`);
         
         if (isBossWave) {
-            this.startBossWave();
+            // Determine stageNumber for the boss
+            let stageNumber;
+            if (this.currentLevel === 4) stageNumber = 1;      // Summoner
+            else if (this.currentLevel === 12) stageNumber = 2; // Berserker
+            else if (this.currentLevel === 20) stageNumber = 3; // Alchemist
+            else if (this.currentLevel === 28) stageNumber = 4; // Lich King
+            else stageNumber = 1; // Default fallback, though should not be reached with current logic
+
+            this.spawnBoss(stageNumber);
+            this.enemiesRemainingInWave = 1; // The boss is the only "enemy" for this wave count
+            this.totalEnemies = 1;
+            this.enemiesSpawnedInWave = 1; // Boss is spawned immediately
+            this.enemiesKilledInWave = 0;
+
+            // Update UI for boss wave
+            if (this.scene.uiManager) {
+                this.scene.uiManager.updateWaveInfo(
+                    this.currentWave,
+                    this.totalWaves,
+                    this.enemiesRemainingInWave, // Should be 1 (the boss)
+                    this.totalEnemies,          // Should be 1
+                    this.enemiesSpawnedInWave,   // Should be 1
+                    this.enemiesKilledInWave    // Should be 0
+                );
+            }
+            // No waveSpawnInterval needed for boss, completion handled by boss death
         } else {
             this.startRegularWave();
         }
@@ -117,7 +142,7 @@ export default class SpawnSystem {
         // Update UI manager with wave information
         if (this.scene.uiManager) {
             // Show wave notification
-            this.scene.uiManager.showWaveNotification(this.currentWave, this.totalWaves, isBossWave);
+            this.scene.uiManager.showWaveNotification(isBossWave ? 'BOSS WAVE!' : `WAVE ${this.currentWave} / ${this.totalWaves}`);
         } else {
             // Fallback to old notification if UIManager isn't available
             this.showWaveNotification(isBossWave ? 'BOSS WAVE!' : `WAVE ${this.currentWave} / ${this.totalWaves}`);
@@ -577,11 +602,63 @@ export default class SpawnSystem {
                     }
                 }
                 break;
+
+            default: // Fallback for very high levels if not explicitly defined
+                config.melee = 10 + (this.currentLevel * 2) + (this.currentWave * 2);
+                config.dasher = 5 + this.currentLevel + this.currentWave;
+                config.shooter = 3 + this.currentLevel + this.currentWave;
+                config.bomber = 2 + Math.floor(this.currentLevel / 2) + this.currentWave;
+                config.mage = 1 + Math.floor(this.currentLevel / 3) + Math.floor(this.currentWave / 2);
+                config.totalEnemies = config.melee + config.dasher + config.bomber + config.shooter + config.mage;
+                break;
+        }
+
+        // Recalculate total enemies if not set or if it's different from sum
+        const currentTotalCalculated = config.melee + config.dasher + config.bomber + config.shooter + config.mage;
+        if (config.totalEnemies !== currentTotalCalculated) {
+            // console.warn(`[SpawnSystem] Discrepancy in totalEnemies for L${this.currentLevel} W${this.currentWave}. Stated: ${config.totalEnemies}, Calculated: ${currentTotalCalculated}. Using calculated sum.`);
+            config.totalEnemies = currentTotalCalculated;
         }
         
-        // Calculate total enemies
+        // Store the original total before reduction
+        const originalTotalEnemies = config.totalEnemies;
+
+        // Reduce total enemy count to 70%
+        const newTotalEnemies = Math.max(1, Math.floor(originalTotalEnemies * 0.7)); // Ensure at least 1 enemy
+
+        // If originalTotalEnemies is 0, newTotalEnemies will be 0, ratio is irrelevant or 1.
+        const reductionRatio = originalTotalEnemies > 0 ? newTotalEnemies / originalTotalEnemies : 1;
+
+        config.melee = Math.round(config.melee * reductionRatio);
+        config.dasher = Math.round(config.dasher * reductionRatio);
+        config.bomber = Math.round(config.bomber * reductionRatio);
+        config.shooter = Math.round(config.shooter * reductionRatio);
+        config.mage = Math.round(config.mage * reductionRatio);
+
+        // Final total enemies based on rounded individual counts
         config.totalEnemies = config.melee + config.dasher + config.bomber + config.shooter + config.mage;
         
+        // Ensure totalEnemies is not less than 1 if any individual type is > 0
+        if (config.totalEnemies === 0 && (config.melee > 0 || config.dasher > 0 || config.bomber > 0 || config.shooter > 0 || config.mage > 0)) {
+            // If all rounded to 0 but some were > 0, set total to 1 and make the first available type 1
+            config.totalEnemies = 1;
+            if (originalTotalEnemies > 0) { // only if there were enemies to begin with
+                if (Math.round(originalTotalEnemies * 0.7) === 0) { // if 70% rounded to 0
+                     if (config.melee > 0 || (config.melee === 0 && config.dasher === 0 && config.bomber === 0 && config.shooter === 0 && config.mage === 0 && originalTotalEnemies > 0 && (config.melee / originalTotalEnemies > 0) ) ) config.melee = 1;
+                     else if (config.dasher > 0 || (config.dasher === 0 && config.bomber === 0 && config.shooter === 0 && config.mage === 0 && originalTotalEnemies > 0 && (config.dasher / originalTotalEnemies > 0) )) config.dasher = 1;
+                     else if (config.bomber > 0 || (config.bomber === 0 && config.shooter === 0 && config.mage === 0 && originalTotalEnemies > 0 && (config.bomber / originalTotalEnemies > 0) )) config.bomber = 1;
+                     else if (config.shooter > 0 || (config.shooter === 0 && config.mage === 0 && originalTotalEnemies > 0 && (config.shooter / originalTotalEnemies > 0) )) config.shooter = 1;
+                     else if (config.mage > 0 || (config.mage === 0 && originalTotalEnemies > 0 && (config.mage / originalTotalEnemies > 0) )) config.mage = 1;
+                     else { // If all were zero initially, but originalTotal was > 0 (e.g. only one type of enemy that rounded down)
+                        config.melee = 1; // Default to melee
+                     }
+                }
+            }
+        }
+
+        console.log(`[SpawnSystem] L${this.currentLevel} W${this.currentWave}: Original total enemies: ${originalTotalEnemies}, Reduced to: ${config.totalEnemies} (Ratio: ${reductionRatio.toFixed(2)})`);
+        console.log(`[SpawnSystem] Final Config: Melee-${config.melee}, Dasher-${config.dasher}, Bomber-${config.bomber}, Shooter-${config.shooter}, Mage-${config.mage}`);
+
         return config;
     }
     
